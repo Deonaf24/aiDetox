@@ -4,7 +4,6 @@
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
-const FN_CREATE_PROFILE = `${SUPABASE_URL}/functions/v1/create-profile`;
 
 // -------------------------
 // Helpers
@@ -69,12 +68,39 @@ async function renderAuthState() {
   }
 }
 
-// React to auth state changes (e.g., token refresh or sign out)
+// Ensure a profile exists for the given auth user
+async function ensureProfile(user) {
+  if (!user) return;
+  const { data: existing, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error) {
+    console.error("Profile lookup failed:", error);
+    return;
+  }
+  if (!existing) {
+    const username =
+      user.user_metadata?.username || user.email?.split("@")[0] || null;
+    const { error: insertErr } = await supabase
+      .from("profiles")
+      .insert({ id: user.id, username });
+    if (insertErr) {
+      console.error("Profile creation failed:", insertErr.message);
+    }
+  }
+}
+
+// React to auth state changes (e.g., token refresh or sign in/out)
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === "TOKEN_REFRESHED") {
     storeSession(session);
   } else if (event === "SIGNED_OUT") {
     storeSession(null);
+  } else if (event === "SIGNED_IN") {
+    storeSession(session);
+    await ensureProfile(session?.user);
   }
   await renderAuthState();
 });
@@ -125,68 +151,14 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
     return;
   }
 
-  // 1) Create the auth user
-  const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password });
+  // 1) Create the auth user (store username in metadata)
+  const { error: signUpErr } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { username } },
+  });
   if (signUpErr) {
     msg.textContent = `Sign up failed: ${signUpErr.message}`;
-    return;
-  }
-
-  // 2) Ensure profile row with unique username (permanent)
-  const userId = signUpData.user?.id;
-  if (!userId) {
-    msg.textContent = "Unable to create profile. Try logging in.";
-    return;
-  }
-
-  let profErrMsg = "";
-  let profErrCode = "";
-
-  // If confirmations are OFF you already have a session; insert profile client-side.
-  // If confirmations are ON, no session yet; call Edge Function to insert profile.
-  if (signUpData.session) {
-    const { error } = await supabase
-      .from("profiles")
-      .insert({ id: userId, username });
-    if (error) {
-      profErrMsg = error.message || "";
-      profErrCode = error.code || "";
-    }
-  } else {
-    try {
-      const headers = {
-        "content-type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-      };
-      // If you *do* have a session, you could optionally add:
-      // const { data: { session } } = await supabase.auth.getSession();
-      // if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-
-      const res = await fetch(FN_CREATE_PROFILE, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ userId, username }),
-      });
-      if (!res.ok) {
-        profErrMsg = await res.text();
-      }
-    } catch (err) {
-      profErrMsg = err?.message || String(err);
-    }
-  }
-
-  // Handle duplicate/unique violations from either path (race condition safety)
-  if (profErrMsg) {
-    const isDuplicate =
-      profErrCode === "23505" ||
-      /duplicate|unique|username.*taken/i.test(profErrMsg);
-
-    if (isDuplicate) {
-      msg.textContent = "Username just got taken — please pick another.";
-    } else {
-      msg.textContent = profErrMsg || "Could not save profile.";
-      console.error("Profile creation failed:", profErrMsg);
-    }
     return;
   }
 
@@ -215,19 +187,7 @@ $("#form-login")?.addEventListener("submit", async (e) => {
     msg.textContent = "Login failed: " + error.message;
   } else {
     msg.textContent = "Logged in!";
-
-    const userId = data.user?.id;
-    const username = data.user?.user_metadata?.username || data.user?.email?.split('@')[0] || null;
-    try {
-      if (userId) {
-        await fetch(FN_CREATE_PROFILE, {
-          method: "POST",
-          headers: { "content-type": "application/json", apikey: SUPABASE_ANON_KEY },
-          body: JSON.stringify({ userId, username }),
-        });
-      }
-    } catch (_) {}
-
+    await ensureProfile(data.user);
     await renderAuthState();
   }
 });
