@@ -1,22 +1,16 @@
 // background.js
 
-import { createClient } from "@supabase/supabase-js";
+import { supabase, registerDevice, logEvent } from "./supabaseClient.js";
 
 const LOG_KEY = 'aidetox_log';
 const MAX_LOG = 1000;
-
-const SUPABASE_URL = "https://ltjtjgdjllmbyknaygof.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0anRqZ2RqbGxtYnlrbmF5Z29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDkxOTAsImV4cCI6MjA3MTcyNTE5MH0.tMfU0stBJZ52IKWOd7A0HGSWxXMhvXVqd9dyredUEHM";
-const FN_INGEST = `${SUPABASE_URL}/functions/v1/ingest`;
 const DEVICE_KEY = 'aidetox_device_id';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // --- Helpers ---
-async function getStoredToken() {
+async function getStoredSession() {
   return new Promise((resolve) => {
-    chrome.storage.local.get("aidetox_token", (res) => {
-      resolve(res["aidetox_token"] || null);
+    chrome.storage.local.get("aidetox_session", (res) => {
+      resolve(res["aidetox_session"] || null);
     });
   });
 }
@@ -35,25 +29,21 @@ async function getDeviceId() {
   });
 }
 
-// --- Supabase ingest ---
-async function ingestToSupabase(evt) {
+// --- Supabase logging ---
+async function logEventToSupabase(evt) {
   try {
+    const session = await getStoredSession();
+    if (session?.access_token && session?.refresh_token) {
+      await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+    }
     const device_id = await getDeviceId();
-    const token = await getStoredToken();
-
-    const headers = {
-      "content-type": "application/json",
-      "apikey": SUPABASE_ANON_KEY,
-    };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-
-    await fetch(FN_INGEST, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ device_id, ...evt }),
-    });
+    await registerDevice(device_id);
+    await logEvent({ device_id, profile_id: session?.user?.id || null, ...evt });
   } catch (err) {
-    console.warn("Supabase ingest failed:", err);
+    console.warn("Supabase log failed:", err);
   }
 }
 
@@ -82,7 +72,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       await chrome.storage.local.set({ [LOG_KEY]: log });
 
       // 2) forward to Supabase
-      ingestToSupabase({
+      logEventToSupabase({
         at: new Date(entry.at).toISOString(),
         event: entry.event,
         domain: entry.domain,
