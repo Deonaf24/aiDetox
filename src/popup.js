@@ -1,13 +1,9 @@
 // -------------------------
 // Supabase (bundled SDK)
 // -------------------------
-import { createClient } from "@supabase/supabase-js";
+import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
 
-const SUPABASE_URL = "https://ltjtjgdjllmbyknaygof.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0anRqZ2RqbGxtYnlrbmF5Z29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNDkxOTAsImV4cCI6MjA3MTcyNTE5MH0.tMfU0stBJZ52IKWOd7A0HGSWxXMhvXVqd9dyredUEHM";
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // -------------------------
 // Helpers
@@ -34,6 +30,20 @@ async function getDeviceId() {
 // -------------------------
 // Auth UI state
 // -------------------------
+function storeSession(session) {
+  if (session?.access_token) {
+    chrome.storage.local.set({
+      aidetox_session: {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        user: session.user,
+      },
+    });
+  } else {
+    chrome.storage.local.remove("aidetox_session");
+  }
+}
+
 async function renderAuthState() {
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -48,22 +58,22 @@ async function renderAuthState() {
     status.textContent = `Logged in as ${session.user.email}`;
     hide(btnSignup); hide(btnLogin); show(btnLogout);
     hide(formSignup); hide(formLogin);
-    // Store the token for background to send along if you want
-    chrome.storage.local.set({ aidetox_token: session.access_token || "" });
+    // Store session so background script can authenticate
+    storeSession(session);
   } else {
     status.textContent = "Not logged in";
     show(btnSignup); show(btnLogin); hide(btnLogout);
     hide(formSignup); hide(formLogin);
-    chrome.storage.local.remove("aidetox_token");
+    storeSession(null);
   }
 }
 
 // React to auth state changes (e.g., token refresh or sign out)
 supabase.auth.onAuthStateChange(async (event, session) => {
   if (event === "TOKEN_REFRESHED") {
-    chrome.storage.local.set({ aidetox_token: session?.access_token || "" });
+    storeSession(session);
   } else if (event === "SIGNED_OUT") {
-    chrome.storage.local.remove("aidetox_token");
+    storeSession(null);
   }
   await renderAuthState();
 });
