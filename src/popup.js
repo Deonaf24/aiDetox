@@ -184,7 +184,8 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
     if (isDuplicate) {
       msg.textContent = "Username just got taken — please pick another.";
     } else {
-      msg.textContent = "Could not save profile.";
+      msg.textContent = profErrMsg || "Could not save profile.";
+      console.error("Profile creation failed:", profErrMsg);
     }
     return;
   }
