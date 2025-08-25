@@ -4,6 +4,7 @@
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
+const FN_CREATE_PROFILE = `${SUPABASE_URL}/functions/v1/create-profile`;
 
 // -------------------------
 // Helpers
@@ -131,24 +132,57 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
     return;
   }
 
-  // 2) Insert profile row with unique username (permanent)
+  // 2) Ensure profile row with unique username (permanent)
   const userId = signUpData.user?.id;
   if (!userId) {
     msg.textContent = "Unable to create profile. Try logging in.";
     return;
   }
 
-  const { error: profErr } = await supabase
-    .from("profiles")
-    .insert({ id: userId, username });
+  let profErrMsg = "";
+  let profErrCode = "";
 
-  if (profErr) {
-    // Handle unique constraint or explicit "username taken" errors
-    const taken =
-      profErr.code === "23505" ||
-      profErr.message?.toLowerCase().includes("username taken");
-    if (taken) {
-      msg.textContent = "That username is taken. Please choose another.";
+  // If confirmations are OFF you already have a session; insert profile client-side.
+  // If confirmations are ON, no session yet; call Edge Function to insert profile.
+  if (signUpData.session) {
+    const { error } = await supabase
+      .from("profiles")
+      .insert({ id: userId, username });
+    if (error) {
+      profErrMsg = error.message || "";
+      profErrCode = error.code || "";
+    }
+  } else {
+    try {
+      const headers = {
+        "content-type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+      };
+      // If you *do* have a session, you could optionally add:
+      // const { data: { session } } = await supabase.auth.getSession();
+      // if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
+      const res = await fetch(FN_CREATE_PROFILE, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ userId, username }),
+      });
+      if (!res.ok) {
+        profErrMsg = await res.text();
+      }
+    } catch (err) {
+      profErrMsg = err?.message || String(err);
+    }
+  }
+
+  // Handle duplicate/unique violations from either path (race condition safety)
+  if (profErrMsg) {
+    const isDuplicate =
+      profErrCode === "23505" ||
+      /duplicate|unique|username.*taken/i.test(profErrMsg);
+
+    if (isDuplicate) {
+      msg.textContent = "Username just got taken — please pick another.";
     } else {
       msg.textContent = "Could not save profile.";
     }
@@ -180,6 +214,19 @@ $("#form-login")?.addEventListener("submit", async (e) => {
     msg.textContent = "Login failed: " + error.message;
   } else {
     msg.textContent = "Logged in!";
+
+    const userId = data.user?.id;
+    const username = data.user?.user_metadata?.username || data.user?.email?.split('@')[0] || null;
+    try {
+      if (userId) {
+        await fetch(FN_CREATE_PROFILE, {
+          method: "POST",
+          headers: { "content-type": "application/json", apikey: SUPABASE_ANON_KEY },
+          body: JSON.stringify({ userId, username }),
+        });
+      }
+    } catch (_) {}
+
     await renderAuthState();
   }
 });
