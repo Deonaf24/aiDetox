@@ -289,11 +289,13 @@ async function getLeaderboard(metric, scope = LB_SCOPE) {
     if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
 
     const res = await fetch(url.toString(), { headers });
+    let json = null;
+    try { json = await res.json(); } catch (_) {}
     if (res.status === 401 && scope === "friends") {
-      return { entries: [], me: null, error: "login_required" };
+      return { entries: [], me: null, error: json?.error || "login_required" };
     }
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
+    if (!res.ok) throw new Error(json?.error || "request_failed");
+    return json;
   } catch (err) {
     console.error("Leaderboard fetch failed:", err);
     return { entries: [], me: null, error: "network" };
