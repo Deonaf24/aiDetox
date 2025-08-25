@@ -15,6 +15,15 @@ serve(async (req) => {
 
   const supa = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
+  const authHeader = req.headers.get("Authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+  const { data: { user } = { user: null }, error: authError } = token
+    ? await supa.auth.getUser(token)
+    : { data: { user: null }, error: new Error("No token") } as any;
+  if (authError || !user) {
+    return new Response("Unauthorized", { status: 401, headers: cors });
+  }
+
   let p: any;
   try { p = await req.json(); } catch { return new Response("Bad JSON", { status: 400, headers: cors }); }
 
@@ -25,7 +34,7 @@ serve(async (req) => {
 
   await supa.from("devices").upsert({ id: device_id, last_seen: new Date().toISOString() }, { onConflict: "id" });
 
-  const { error } = await supa.from("events").insert({ device_id, event, at, domain, url, reason, unlock_delay_ms });
+  const { error } = await supa.from("events").insert({ user_id: user.id, device_id, event, at, domain, url, reason, unlock_delay_ms });
   if (error) return new Response(error.message, { status: 500, headers: cors });
 
   return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "content-type": "application/json" } });
