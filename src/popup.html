@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>aiDetox — Dashboard</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="hdr">
+      <div class="hdr-title">
+        <div class="hdr-logo">🧘‍♂️</div>
+        <div>
+          <h1>aiDetox</h1>
+          <p class="muted">Your AI usage journal</p>
+        </div>
+      </div>
+      <div class="hdr-stats">
+        <div class="stat"><span id="stat-total">0</span><label>Total</label></div>
+        <div class="stat"><span id="stat-proceed">0</span><label>Proceed</label></div>
+        <div class="stat"><span id="stat-close">0</span><label>Closed</label></div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab is-active" data-tab="activity">Activity</button>
+      <button class="tab" data-tab="leaderboards">Leaderboards</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- Activity -->
+    <section id="tab-activity">
+      <section class="controls">
+        <div class="seg">
+          <button class="seg-btn is-active" data-filter="all">All</button>
+          <button class="seg-btn" data-filter="proceed">Proceed</button>
+          <button class="seg-btn" data-filter="close">Closed</button>
+        </div>
+        <input id="search" class="search" placeholder="Search reasons, domains…" />
+        <div class="actions">
+          <button id="export" class="btn btn-secondary">Export CSV</button>
+          <button id="clear" class="btn btn-danger">Clear</button>
+        </div>
+      </section>
+      <main id="list" class="list"></main>
+    </section>
+
+    <!-- Leaderboards -->
+    <section id="tab-leaderboards" class="hidden">
+      <div class="lb-controls">
+        <div class="seg">
+          <button class="seg-btn seg-scope is-active" data-scope="global">Global</button>
+          <button class="seg-btn seg-scope" data-scope="friends">Friends</button>
+        </div>
+        <div class="muted small" id="lb-note">Showing mock data until you connect.</div>
+      </div>
+
+      <div class="boards">
+        <!-- No-Assist Streak -->
+        <div class="board-card">
+          <div class="board-head">
+            <div class="board-title">No-Assist Streak</div>
+            <div class="board-sub">Visited but didn’t proceed</div>
+          </div>
+          <div class="board-body">
+            <div id="lb-noai-list" class="ranklist"></div>
+          </div>
+        </div>
+
+        <!-- Off-Grid Streak -->
+        <div class="board-card">
+          <div class="board-head">
+            <div class="board-title">Off-Grid Streak</div>
+            <div class="board-sub">Didn’t open AI sites</div>
+          </div>
+          <div class="board-body">
+            <div id="lb-novisit-list" class="ranklist"></div>
+          </div>
+        </div>
+
+        <!-- Detox Saves (new metric) -->
+        <div class="board-card">
+          <div class="board-head">
+            <div class="board-title">Detox Saves</div>
+            <div class="board-sub">Clicked “No” on the prompt</div>
+          </div>
+          <div class="board-body">
+            <div id="lb-saves-list" class="ranklist"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Settings -->
+    <section id="tab-settings" class="hidden">
+      <div class="settings">
+        <!-- Account -->
+        <div class="set-card">
+          <div class="set-title">Account</div>
+          <div id="auth-status" class="muted small">Checking session…</div>
+
+          <div class="set-row" style="margin-top:10px;">
+            <button id="btn-show-signup" class="btn">Sign up</button>
+            <button id="btn-show-login" class="btn">Log in</button>
+            <button id="btn-logout" class="btn btn-danger hidden">Log out</button>
+          </div>
+
+          <!-- Sign Up form -->
+          <form id="form-signup" class="hidden" autocomplete="off">
+            <div class="set-row">
+              <div class="set-row-title">Username</div>
+              <input type="text" id="su-username" class="set-input-wide" placeholder="Pick a username (permanent)" required />
+            </div>
+            <div class="set-row">
+              <div class="set-row-title">Email</div>
+              <input type="email" id="su-email" class="set-input-wide" placeholder="you@example.com" required />
+            </div>
+            <div class="set-row">
+              <div class="set-row-title">Password</div>
+              <input type="password" id="su-password" class="set-input-wide" placeholder="••••••••" required />
+            </div>
+            <div class="set-row">
+              <button type="submit" class="btn btn-secondary">Create account</button>
+              <span id="su-msg" class="muted small"></span>
+            </div>
+            <div class="muted small">Your username is unique and permanent. We’ll reserve it on sign-up.</div>
+          </form>
+
+          <!-- Log In form -->
+          <form id="form-login" class="hidden" autocomplete="off">
+            <div class="set-row">
+              <div class="set-row-title">Email</div>
+              <input type="email" id="li-email" class="set-input-wide" placeholder="you@example.com" required />
+            </div>
+            <div class="set-row">
+              <div class="set-row-title">Password</div>
+              <input type="password" id="li-password" class="set-input-wide" placeholder="••••••••" required />
+            </div>
+            <div class="set-row">
+              <button type="submit" class="btn btn-secondary">Log in</button>
+              <span id="li-msg" class="muted small"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- Behavior (unchanged / coming soon) -->
+        <div class="set-card">
+          <div class="set-title">Behavior</div>
+          <div class="set-row">
+            <label class="switch">
+              <input type="checkbox" id="set-always-ask" disabled />
+              <span class="slider"></span>
+            </label>
+            <div>
+              <div class="set-row-title">Always ask (no 30s buffer)</div>
+              <div class="muted small">Prompt every visit. (Coming soon)</div>
+            </div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-title">Unlock delay</div>
+            <input type="number" id="set-unlock" class="set-input" min="0" step="1" value="10" disabled />
+            <div class="muted small">Seconds before Proceed unlocks. (Coming soon)</div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-title">Minimum reason length</div>
+            <input type="number" id="set-minchars" class="set-input" min="0" step="1" value="10" disabled />
+            <div class="muted small">Characters required to proceed. (Coming soon)</div>
+          </div>
+        </div>
+
+        <!-- Data -->
+        <div class="set-card">
+          <div class="set-title">Data</div>
+          <div class="set-row">
+            <button id="settings-export" class="btn btn-secondary">Export CSV</button>
+            <button id="settings-clear" class="btn btn-danger">Clear all</button>
+          </div>
+          <div class="muted small">Stored locally (chrome.storage.local)</div>
+        </div>
+      </div>
+    </section>
+
+
+    <footer class="foot muted">Stores locally on this device (chrome.storage.local).</footer>
+    <script src="popup.js"></script>
+  </body>
+</html>

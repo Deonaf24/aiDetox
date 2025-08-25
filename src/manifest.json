@@ -1,0 +1,39 @@
+{
+    "manifest_version": 3,
+    "name": "aiDetox",
+    "description": "Stop relying on AI to run your life for you.",
+    "version": "1.0.0",
+  
+    "action": { "default_popup": "popup.html" },
+  
+    "permissions": ["storage", "tabs", "downloads"],
+
+    "host_permissions": [
+      "https://*.supabase.co/*"
+    ], 
+  
+    "background": {
+      "service_worker": "background.js"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": [
+          "https://chatgpt.com/*",
+          "https://chat.openai.com/*",
+          "https://claude.ai/*",
+          "https://gemini.google.com/*",
+          "https://perplexity.ai/*",
+          "https://copilot.microsoft.com/*",
+          "https://poe.com/*",
+          "https://character.ai/*",
+          "https://huggingface.co/chat/*",
+          "https://openrouter.ai/*"
+        ],
+        "js": ["content.js"],
+        "css": ["content.css"],
+        "run_at": "document_start"
+      }
+    ]
+  }
+  

@@ -1,0 +1,132 @@
+#aidetox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.85);
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  
+  .aidetox-card {
+    width: min(520px, 92vw);
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    padding: 20px 20px 16px;
+  }
+  
+  .aidetox-title {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+  }
+  
+  .aidetox-text {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .aidetox-input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 72px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    resize: vertical;
+    font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  
+    /* ensure readable in dark-themed sites */
+    background: #fff;
+    color: #111;
+    caret-color: #111;
+  }
+  .aidetox-input::placeholder { color: #9ca3af; }
+  .aidetox-input:focus { outline: none; border-color: #9ca3af; box-shadow: 0 0 0 3px rgba(156,163,175,.25); }
+  
+  
+  .aidetox-hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  .aidetox-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 12px;
+  }
+  
+  .aidetox-error {
+    color: #b91c1c;
+    font-size: 12px;
+    margin-right: auto;
+    display: none;
+  }
+  
+  .aidetox-btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #111;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .aidetox-btn:hover { filter: brightness(0.97); }
+  
+  .aidetox-btn-primary {
+    background: #111827;
+    color: #fff;
+    border: 1px solid #111827;
+  }
+  
+  /* Disabled look */
+  .aidetox-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+  .aidetox-btn-primary[disabled] { background: #111827; color: #fff; border-color: #111827; }
+  
+  /* Lock icon + wrapper */
+  .aidetox-lock { width: 14px; height: 14px; }
+  .aidetox-lockwrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;       /* ⬅ bigger diameter */
+    height: 26px;      /* ⬅ bigger diameter */
+    margin-right: 8px;
+  }
+  
+  /* The arc ring around the lock (no background ring) */
+  .aidetox-ring {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transform: rotate(-90deg);       /* start at 12 o’clock */
+  }
+  .aidetox-ring .progress {
+    fill: none;
+    stroke: currentColor;            /* uses button text color */
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  
+  /* Animate arc length from full circumference -> 0 */
+  @keyframes aidetox-arc-shrink {
+    from { stroke-dasharray: var(--circumference, 200) var(--circumference, 200); stroke-dashoffset: 0; }
+    to   { stroke-dasharray: 0 var(--circumference, 200); stroke-dashoffset: 0; }
+  }
+  #aidetox-yes.aidetox-counting .aidetox-ring .progress {
+    animation: aidetox-arc-shrink var(--unlock-ms, 10000ms) linear forwards;
+  }
+  
+  /* Shackle pop on unlock */
+  .lock-shackle { transform-origin: 12px 8px; transition: transform .35s ease; }
+  #aidetox-yes.aidetox-unlocking .lock-shackle { transform: translateY(-2px) rotate(18deg); }
+  
