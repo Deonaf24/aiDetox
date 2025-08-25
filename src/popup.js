@@ -142,30 +142,47 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
   let profErrMsg = "";
   let profErrCode = "";
 
+  // If confirmations are OFF you already have a session; insert profile client-side.
+  // If confirmations are ON, no session yet; call Edge Function to insert profile.
   if (signUpData.session) {
     const { error } = await supabase
       .from("profiles")
       .insert({ id: userId, username });
-    if (error) { profErrMsg = error.message; profErrCode = error.code || ""; }
+    if (error) {
+      profErrMsg = error.message || "";
+      profErrCode = error.code || "";
+    }
   } else {
     try {
+      const headers = {
+        "content-type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+      };
+      // If you *do* have a session, you could optionally add:
+      // const { data: { session } } = await supabase.auth.getSession();
+      // if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
       const res = await fetch(FN_CREATE_PROFILE, {
         method: "POST",
-        headers: { "content-type": "application/json", apikey: SUPABASE_ANON_KEY },
+        headers,
         body: JSON.stringify({ userId, username }),
       });
       if (!res.ok) {
         profErrMsg = await res.text();
       }
     } catch (err) {
-      profErrMsg = err.message || String(err);
+      profErrMsg = err?.message || String(err);
     }
   }
 
+  // Handle duplicate/unique violations from either path (race condition safety)
   if (profErrMsg) {
-    // Unique violation race fallback
-    if (profErrCode === "23505" || /duplicate/i.test(profErrMsg)) {
-      msg.textContent = "Username just got taken—please pick another.";
+    const isDuplicate =
+      profErrCode === "23505" ||
+      /duplicate|unique|username.*taken/i.test(profErrMsg);
+
+    if (isDuplicate) {
+      msg.textContent = "Username just got taken — please pick another.";
     } else {
       msg.textContent = "Could not save profile.";
     }
