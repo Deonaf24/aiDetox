@@ -12,3 +12,9 @@ create policy "Individuals can manage own profile"
   for all
   using (auth.uid() = id)
   with check (auth.uid() = id);
+
+-- Allow anonymous username availability checks
+create policy "Anyone can read usernames"
+  on profiles
+  for select
+  using (true);

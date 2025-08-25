@@ -143,9 +143,12 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
     .insert({ id: userId, username });
 
   if (profErr) {
-    // Unique violation race fallback
-    if (profErr.code === "23505") {
-      msg.textContent = "Username just got taken—please pick another.";
+    // Handle unique constraint or explicit "username taken" errors
+    const taken =
+      profErr.code === "23505" ||
+      profErr.message?.toLowerCase().includes("username taken");
+    if (taken) {
+      msg.textContent = "That username is taken. Please choose another.";
     } else {
       msg.textContent = "Could not save profile.";
     }
