@@ -4,6 +4,7 @@
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
+const FN_CREATE_PROFILE = `${SUPABASE_URL}/functions/v1/create-profile`;
 
 // -------------------------
 // Helpers
@@ -131,20 +132,39 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
     return;
   }
 
-  // 2) Insert profile row with unique username (permanent)
+  // 2) Ensure profile row with unique username (permanent)
   const userId = signUpData.user?.id;
   if (!userId) {
     msg.textContent = "Unable to create profile. Try logging in.";
     return;
   }
 
-  const { error: profErr } = await supabase
-    .from("profiles")
-    .insert({ id: userId, username });
+  let profErrMsg = "";
+  let profErrCode = "";
 
-  if (profErr) {
+  if (signUpData.session) {
+    const { error } = await supabase
+      .from("profiles")
+      .insert({ id: userId, username });
+    if (error) { profErrMsg = error.message; profErrCode = error.code || ""; }
+  } else {
+    try {
+      const res = await fetch(FN_CREATE_PROFILE, {
+        method: "POST",
+        headers: { "content-type": "application/json", apikey: SUPABASE_ANON_KEY },
+        body: JSON.stringify({ userId, username }),
+      });
+      if (!res.ok) {
+        profErrMsg = await res.text();
+      }
+    } catch (err) {
+      profErrMsg = err.message || String(err);
+    }
+  }
+
+  if (profErrMsg) {
     // Unique violation race fallback
-    if (profErr.code === "23505") {
+    if (profErrCode === "23505" || /duplicate/i.test(profErrMsg)) {
       msg.textContent = "Username just got taken—please pick another.";
     } else {
       msg.textContent = "Could not save profile.";
@@ -177,6 +197,19 @@ $("#form-login")?.addEventListener("submit", async (e) => {
     msg.textContent = "Login failed: " + error.message;
   } else {
     msg.textContent = "Logged in!";
+
+    const userId = data.user?.id;
+    const username = data.user?.user_metadata?.username || data.user?.email?.split('@')[0] || null;
+    try {
+      if (userId) {
+        await fetch(FN_CREATE_PROFILE, {
+          method: "POST",
+          headers: { "content-type": "application/json", apikey: SUPABASE_ANON_KEY },
+          body: JSON.stringify({ userId, username }),
+        });
+      }
+    } catch (_) {}
+
     await renderAuthState();
   }
 });
