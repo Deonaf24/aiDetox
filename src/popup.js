@@ -58,6 +58,16 @@ async function renderAuthState() {
   }
 }
 
+// React to auth state changes (e.g., token refresh or sign out)
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === "TOKEN_REFRESHED") {
+    chrome.storage.local.set({ aidetox_token: session?.access_token || "" });
+  } else if (event === "SIGNED_OUT") {
+    chrome.storage.local.remove("aidetox_token");
+  }
+  await renderAuthState();
+});
+
 // Toggle forms
 $("#btn-show-signup")?.addEventListener("click", () => {
   hide($("#form-login"));
