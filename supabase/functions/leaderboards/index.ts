@@ -15,12 +15,41 @@ serve(async (req) => {
 
   const url = new URL(req.url);
   const metric = url.searchParams.get("metric");     // 'noai' | 'novisit' | 'saves'
-  const meId   = url.searchParams.get("device_id") || "";
+  const scope  = url.searchParams.get("scope") === "friends" ? "friends" : "global";
+  let   meId   = url.searchParams.get("device_id") || "";
   if (!["noai","novisit","saves"].includes(String(metric))) {
-    return new Response("invalid metric", { status: 400, headers: cors });
+    return new Response(JSON.stringify({ error: "invalid_metric" }), { status: 400, headers: { ...cors, "content-type": "application/json" } });
   }
 
   const supa = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+
+  // Authenticate and collect friend IDs if needed
+  let friendIds: Set<string> | null = null;
+  if (scope === "friends") {
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!token) {
+      return new Response(JSON.stringify({ error: "login_required" }), { status: 401, headers: { ...cors, "content-type": "application/json" } });
+    }
+
+    const { data: { user }, error: userErr } = await supa.auth.getUser(token);
+    if (userErr || !user) {
+      return new Response(JSON.stringify({ error: "login_required" }), { status: 401, headers: { ...cors, "content-type": "application/json" } });
+    }
+    meId = user.id;
+
+    const { data: friendRows, error: friendsErr } = await supa
+      .from("friends")
+      .select("user_id, friend_id")
+      .or(`user_id.eq.${meId},friend_id.eq.${meId}`);
+    if (friendsErr) {
+      return new Response(friendsErr.message, { status: 500, headers: cors });
+    }
+    friendIds = new Set([meId]);
+    for (const row of friendRows || []) {
+      friendIds.add(row.user_id === meId ? row.friend_id : row.user_id);
+    }
+  }
   const since = new Date(); since.setMonth(since.getMonth() - 6);
 
   const fn = metric === "saves"   ? "lb_saves"
@@ -28,12 +57,18 @@ serve(async (req) => {
            :                         "lb_offgrid_streak";
 
   const { data, error } = await supa.rpc(fn, { p_since: since.toISOString() });
-  if (error) return new Response(error.message, { status: 500, headers: cors });
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...cors, "content-type": "application/json" } });
+  }
 
   // shape + ranking
-  const entries = (data || [])
+  let entries = (data || [])
     .map((r: any) => ({ id: String(r.identity), name: r.identity.startsWith("dev_") ? r.identity.slice(4,10) : "User", val: Number(r.value)||0 }))
     .sort((a: any,b: any)=> b.val - a.val);
+
+  if (scope === "friends" && friendIds) {
+    entries = entries.filter(e => friendIds!.has(e.id));
+  }
 
   let meRank = meId ? (entries.findIndex(e => e.id === meId) + 1) : 0;
   if (meId && meRank === 0) { entries.push({ id: meId, name: "You", val: 0 }); entries.sort((a,b)=>b.val-a.val); meRank = entries.findIndex(e=>e.id===meId)+1; }
