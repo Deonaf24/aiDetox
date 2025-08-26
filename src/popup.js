@@ -120,17 +120,8 @@ async function ensureProfile(user) {
 }
 
 // React to auth state changes (e.g., token refresh or sign in/out)
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === "TOKEN_REFRESHED") {
-    storeSession(session);
-  } else if (event === "SIGNED_OUT") {
-    storeSession(null);
-  } else if (event === "SIGNED_IN") {
-    storeSession(session);
-    await ensureProfile(session?.user);
-  }
-  await renderAuthState();
-});
+// Registration moved after initial session restoration
+
 
 // Toggle forms
 $("#btn-show-signup")?.addEventListener("click", () => {
@@ -437,4 +428,23 @@ $$(".tab").forEach(tabBtn => {
 // Initial load
 // -------------------------
 loadAndRender();
-restoreSession().then(renderAuthState);
+
+(async () => {
+  await restoreSession();
+  await renderAuthState();
+
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === "INITIAL_SESSION") {
+      return;
+    }
+    if (event === "TOKEN_REFRESHED") {
+      storeSession(session);
+    } else if (event === "SIGNED_OUT") {
+      storeSession(null);
+    } else if (event === "SIGNED_IN") {
+      storeSession(session);
+      await ensureProfile(session?.user);
+    }
+    await renderAuthState();
+  });
+})();
