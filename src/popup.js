@@ -44,9 +44,28 @@ function storeSession(session) {
   }
 }
 
-async function renderAuthState() {
-  const { data: { session } } = await supabase.auth.getSession();
+// Restore a previously stored session into the Supabase client
+async function restoreSession() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("aidetox_session", async (res) => {
+      const s = res["aidetox_session"];
+      if (s?.access_token && s?.refresh_token) {
+        try {
+          const { error } = await supabase.auth.setSession({
+            access_token: s.access_token,
+            refresh_token: s.refresh_token,
+          });
+          if (error) console.warn("Session restore failed:", error);
+        } catch (err) {
+          console.warn("Session restore failed:", err);
+        }
+      }
+      resolve();
+    });
+  });
+}
 
+async function renderAuthState() {
   const status = $("#auth-status");
   const btnSignup = $("#btn-show-signup");
   const btnLogin  = $("#btn-show-login");
@@ -54,18 +73,26 @@ async function renderAuthState() {
   const formSignup = $("#form-signup");
   const formLogin  = $("#form-login");
 
-  if (session?.user) {
-    status.textContent = `Logged in as ${session.user.email}`;
-    hide(btnSignup); hide(btnLogin); show(btnLogout);
-    hide(formSignup); hide(formLogin);
-    // Store session so background script can authenticate
-    storeSession(session);
-  } else {
-    status.textContent = "Not logged in";
-    show(btnSignup); show(btnLogin); hide(btnLogout);
-    hide(formSignup); hide(formLogin);
-    storeSession(null);
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+
+    if (session?.user) {
+      status.textContent = `Logged in as ${session.user.email}`;
+      hide(btnSignup); hide(btnLogin); show(btnLogout);
+      hide(formSignup); hide(formLogin);
+      // Store session so background script can authenticate
+      storeSession(session);
+      return;
+    }
+  } catch (err) {
+    console.error("Session lookup failed:", err);
   }
+
+  status.textContent = "Not logged in";
+  show(btnSignup); show(btnLogin); hide(btnLogout);
+  hide(formSignup); hide(formLogin);
+  storeSession(null);
 }
 
 // Ensure a profile exists for the given auth user
@@ -410,4 +437,4 @@ $$(".tab").forEach(tabBtn => {
 // Initial load
 // -------------------------
 loadAndRender();
-renderAuthState();
+restoreSession().then(renderAuthState);
