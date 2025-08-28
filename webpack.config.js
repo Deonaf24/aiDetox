@@ -2,7 +2,6 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
-const webpack = require("webpack");
 
 module.exports = {
   mode: process.env.NODE_ENV === "development" ? "development" : "production",
@@ -25,14 +24,13 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        // 👇 These two lines are the key: force ESM parsing
+        // Force ESM parsing
         type: "javascript/auto",
         parser: { javascript: { sourceType: "module" } },
         use: {
           loader: "esbuild-loader",
           options: {
-            // Don’t change format; let Webpack handle modules
-            target: "es2020",  // MV3 (Chrome 114+) is fine
+            target: "es2020", // MV3 (Chrome 114+) is fine
           },
         },
       },
@@ -40,19 +38,21 @@ module.exports = {
   },
 
   plugins: [
-    new Dotenv(),
+    new Dotenv({
+      // Loads .env, or .env.development / .env.production if present
+      path: `./.env${process.env.NODE_ENV ? `.${process.env.NODE_ENV}` : ""}`,
+      systemvars: true, // allow CI/shell vars to override
+      override: false,  // shell/CI wins over .env
+      silent: true,     // keep build output clean
+    }),
     new CopyWebpackPlugin({
       patterns: [
         { from: "src/manifest.json", to: "manifest.json" },
         { from: "src/popup.html", to: "popup.html" },
         { from: "src/popup.css", to: "popup.css" },
         { from: "src/content.css", to: "content.css" },
-        { from: "src/icons", to: "icons", noErrorOnMissing: true }, // fine if missing
+        { from: "src/icons", to: "icons", noErrorOnMissing: true },
       ],
-    }),
-    new webpack.DefinePlugin({
-      "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL || ""),
-      "process.env.SUPABASE_ANON_KEY": JSON.stringify(process.env.SUPABASE_ANON_KEY || ""),
     }),
   ],
 
