@@ -40,14 +40,14 @@ serve(async (req) => {
 
     const { data: friendRows, error: friendsErr } = await supa
       .from("friends")
-      .select("user_id, friend_id")
-      .or(`user_id.eq.${meId},friend_id.eq.${meId}`);
+      .select("owner, friend")
+      .or(`owner.eq.${meId},friend.eq.${meId}`);
     if (friendsErr) {
       return new Response(friendsErr.message, { status: 500, headers: cors });
     }
     friendIds = new Set([meId]);
     for (const row of friendRows || []) {
-      friendIds.add(row.user_id === meId ? row.friend_id : row.user_id);
+      friendIds.add(row.owner === meId ? row.friend : row.owner);
     }
   }
   const since = new Date(); since.setMonth(since.getMonth() - 6);
