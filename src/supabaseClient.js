@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Read Supabase credentials from environment variables injected at build time
+// Load credentials from environment variables injected at build time
 export const SUPABASE_URL = process.env.SUPABASE_URL;
 export const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
