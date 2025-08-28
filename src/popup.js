@@ -108,11 +108,10 @@ async function ensureProfile(user) {
     return;
   }
   if (!existing) {
-    const username =
-      user.user_metadata?.username || user.email?.split("@")[0] || null;
+    const display_name = user.user_metadata?.full_name || null;
     const { error: insertErr } = await supabase
       .from("profiles")
-      .insert({ id: user.id, username });
+      .insert({ id: user.id, display_name });
     if (insertErr) {
       console.error("Profile creation failed:", insertErr.message);
     }
@@ -127,7 +126,7 @@ async function ensureProfile(user) {
 $("#btn-show-signup")?.addEventListener("click", () => {
   hide($("#form-login"));
   show($("#form-signup"));
-  $("#su-username")?.focus();
+  $("#su-email")?.focus();
 });
 $("#btn-show-login")?.addEventListener("click", () => {
   hide($("#form-signup"));
@@ -136,44 +135,24 @@ $("#btn-show-login")?.addEventListener("click", () => {
 });
 
 // -------------------------
-// Sign up flow (email+password+username)
-// Username must be unique & permanent.
+// Sign up flow (email+password)
 // -------------------------
 $("#form-signup")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = $("#su-msg");
   msg.textContent = "";
 
-  const username = $("#su-username").value.trim();
   const email    = $("#su-email").value.trim();
   const password = $("#su-password").value;
 
-  if (!username || !email || !password) {
+  if (!email || !password) {
     msg.textContent = "Please fill all fields.";
     return;
   }
 
-  // 0) Pre-check username availability (requires RLS select allowed to anon)
-  const { data: takenRow, error: checkErr } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("username", username)
-    .maybeSingle();
-
-  if (checkErr) {
-    msg.textContent = "Could not verify username availability.";
-    return;
-  }
-  if (takenRow) {
-    msg.textContent = "Username is taken. Try another.";
-    return;
-  }
-
-  // 1) Create the auth user (store username in metadata)
   const { error: signUpErr } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { username } },
   });
   if (signUpErr) {
     msg.textContent = `Sign up failed: ${signUpErr.message}`;

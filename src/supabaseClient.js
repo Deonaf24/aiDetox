@@ -14,8 +14,7 @@ export async function ensureProfile(user) {
   if (!user?.id) return;
   await supabase.from('profiles').upsert({
     id: user.id,
-    display_name: user.user_metadata?.full_name || null,
-    username: user.user_metadata?.username || user.email?.split('@')[0] || null
+    display_name: user.user_metadata?.full_name || null
   });
 }
 
