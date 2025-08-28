@@ -1,6 +1,7 @@
 // webpack.config.js
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const webpack = require("webpack");
 
 module.exports = {
   mode: process.env.NODE_ENV === "development" ? "development" : "production",
@@ -46,6 +47,10 @@ module.exports = {
         { from: "src/content.css", to: "content.css" },
         { from: "src/icons", to: "icons", noErrorOnMissing: true }, // fine if missing
       ],
+    }),
+    new webpack.DefinePlugin({
+      "process.env.SUPABASE_URL": JSON.stringify(process.env.SUPABASE_URL || ""),
+      "process.env.SUPABASE_ANON_KEY": JSON.stringify(process.env.SUPABASE_ANON_KEY || ""),
     }),
   ],
 
