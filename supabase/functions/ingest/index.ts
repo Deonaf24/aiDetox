@@ -34,7 +34,7 @@ serve(async (req) => {
 
   await supa.from("devices").upsert({ id: device_id, last_seen: new Date().toISOString() }, { onConflict: "id" });
 
-  const { error } = await supa.from("events").insert({ user_id: user.id, device_id, event, at, domain, url, reason, unlock_delay_ms });
+  const { error } = await supa.from("events").insert({ profile_id: user.id, device_id, event, at, domain, url, reason, unlock_delay_ms });
   if (error) return new Response(error.message, { status: 500, headers: cors });
 
   return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "content-type": "application/json" } });
