@@ -1,6 +1,7 @@
 // webpack.config.js
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 module.exports = {
   mode: process.env.NODE_ENV === "development" ? "development" : "production",
@@ -38,6 +39,7 @@ module.exports = {
   },
 
   plugins: [
+    new Dotenv(),
     new CopyWebpackPlugin({
       patterns: [
         { from: "src/manifest.json", to: "manifest.json" },

@@ -19,14 +19,14 @@ serve(async (req) => {
     return new Response("Bad JSON", { status: 400, headers: cors });
   }
 
-  const { userId, username } = body || {};
+  const { userId, display_name } = body || {};
   if (!userId) {
     return new Response("userId required", { status: 400, headers: cors });
   }
 
   const supa = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
-  const { error } = await supa.from("profiles").upsert({ id: userId, username });
+  const { error } = await supa.from("profiles").upsert({ id: userId, display_name });
   if (error) return new Response(error.message, { status: 500, headers: cors });
 
   return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "content-type": "application/json" } });
