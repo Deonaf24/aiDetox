@@ -16,25 +16,32 @@
     const ALLOW_KEY = `aidetox_${KEY_VERSION}_allow_until_${DOMAIN}`;
     const REASONS_KEY = `aidetox_${KEY_VERSION}_reasons_${DOMAIN}`;
   
-    const TTL = 30 * 1000;           // re-prompt after 30s
-    const MIN_CHARS = 10;            // min reason length
-    const UNLOCK_DELAY = 10 * 1000;  // 10 seconds lock
     const FREE_USES_KEY = 'aidetox_free_uses';
     const USES_BEFORE_PROMPT_KEY = 'aidetox_uses_before_prompt';
     const LIMIT_PERIOD_KEY = 'aidetox_limit_period';
     const LAST_RESET_KEY = 'aidetox_last_reset';
+    const ALWAYS_ASK_KEY = 'aidetox_always_ask';
+    const UNLOCK_DELAY_KEY = 'aidetox_unlock_delay';
+    const MIN_CHARS_KEY = 'aidetox_min_chars';
+
     const settings = await new Promise(resolve => {
       chrome.storage.local.get([
         FREE_USES_KEY,
         USES_BEFORE_PROMPT_KEY,
         LIMIT_PERIOD_KEY,
         LAST_RESET_KEY,
+        ALWAYS_ASK_KEY,
+        UNLOCK_DELAY_KEY,
+        MIN_CHARS_KEY,
       ], resolve);
     });
     let freeUses = settings[FREE_USES_KEY] ?? 0;
     const usesBeforePrompt = settings[USES_BEFORE_PROMPT_KEY] ?? 0;
     const limitPeriod = settings[LIMIT_PERIOD_KEY] || 'hour';
     let lastReset = settings[LAST_RESET_KEY] ?? 0;
+    const MIN_CHARS = settings[MIN_CHARS_KEY] ?? 10;
+    const UNLOCK_DELAY = (settings[UNLOCK_DELAY_KEY] ?? 10) * 1000;
+    const TTL = settings[ALWAYS_ASK_KEY] ? 0 : 30 * 1000;           // re-prompt after 30s unless always ask
     const now = Date.now();
     const periodMs = limitPeriod === 'day' ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
     if (now - lastReset >= periodMs) {
@@ -93,7 +100,7 @@
                 <rect class="lock-body" x="6" y="10" width="12" height="10" rx="2" ry="2" fill="currentColor"/>
               </svg>
             </span>
-            <span id="aidetox-yes-label">Proceed in 10</span>
+            <span id="aidetox-yes-label">Proceed in ${UNLOCK_DELAY / 1000}</span>
           </button>
         </div>
       </div>
