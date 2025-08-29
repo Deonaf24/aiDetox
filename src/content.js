@@ -1,3 +1,5 @@
+import { isGoodReason } from './reasonCheck.js';
+
 (async function () {
     const LLM_DOMAINS = [
       'chatgpt.com', 'chat.openai.com', 'claude.ai', 'gemini.google.com',
@@ -23,6 +25,7 @@
     const ALWAYS_ASK_KEY = 'aidetox_always_ask';
     const UNLOCK_DELAY_KEY = 'aidetox_unlock_delay';
     const MIN_CHARS_KEY = 'aidetox_min_chars';
+    const CHECK_REASON_KEY = 'aidetox_check_reason';
 
     const settings = await new Promise(resolve => {
       chrome.storage.local.get([
@@ -33,6 +36,7 @@
         ALWAYS_ASK_KEY,
         UNLOCK_DELAY_KEY,
         MIN_CHARS_KEY,
+        CHECK_REASON_KEY,
       ], resolve);
     });
     let freeUses = settings[FREE_USES_KEY] ?? 0;
@@ -41,6 +45,7 @@
     let lastReset = settings[LAST_RESET_KEY] ?? 0;
     const MIN_CHARS = settings[MIN_CHARS_KEY] ?? 10;
     const UNLOCK_DELAY = (settings[UNLOCK_DELAY_KEY] ?? 10) * 1000;
+    const CHECK_REASON = !!settings[CHECK_REASON_KEY];
     const TTL = settings[ALWAYS_ASK_KEY] ? 0 : 30 * 1000;           // re-prompt after 30s unless always ask
     const now = Date.now();
     const periodMs = limitPeriod === 'day' ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
@@ -88,7 +93,7 @@
         </div>
   
         <div class="aidetox-actions">
-          <span class="aidetox-error" id="aidetox-error">Please add a bit more detail.</span>
+          <span class="aidetox-error" id="aidetox-error">Please provide a valid reason.</span>
           <button class="aidetox-btn" id="aidetox-no">No, close this</button>
           <button class="aidetox-btn aidetox-btn-primary" id="aidetox-yes" disabled>
             <span class="aidetox-lockwrap">
@@ -186,7 +191,7 @@
     function proceedIfValid() {
       if (yesBtn?.hasAttribute('disabled')) return;
       const reason = (textarea?.value || '').trim();
-      if (reason.length < MIN_CHARS) {
+      if (reason.length < MIN_CHARS || (CHECK_REASON && !isGoodReason(reason))) {
         if (errorEl) errorEl.style.display = 'inline';
         return;
       }
