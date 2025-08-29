@@ -163,19 +163,13 @@
           </div>
         </div>
 
-        <!-- Usage Limit -->
+        <!-- Unprompted uses setting -->
         <div class="set-card">
-          <div class="set-title">Usage Limit</div>
+          <div class="set-title">Unprompted uses before prompting</div>
           <div class="set-row">
-            <div class="set-row-title">Allow</div>
-            <input type="number" id="set-limit-count" class="set-input" min="0" step="1" value="0" />
-            <select id="set-limit-period" class="set-input" style="width:120px">
-              <option value="hour">uses / hour</option>
-              <option value="day" selected>uses / day</option>
-              <option value="week">uses / week</option>
-            </select>
+            <input type="number" id="set-uses-before" class="set-input" min="0" step="1" value="0" />
           </div>
-          <div class="muted small">0 disables limit.</div>
+          <div class="muted small">0 prompts every visit.</div>
         </div>
 
         <!-- Data -->

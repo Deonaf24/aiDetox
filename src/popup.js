@@ -17,30 +17,23 @@ const hide = (el) => el && el.classList.add("hidden");
 let LB_SCOPE = "global"; // "global" | "friends"
 
 // Settings keys
-const LIMIT_COUNT_KEY = "aidetox_limit_count";
-const LIMIT_PERIOD_KEY = "aidetox_limit_period";
+const USES_BEFORE_PROMPT_KEY = "aidetox_uses_before_prompt";
 
 function loadSettings() {
-  chrome.storage.local.get([LIMIT_COUNT_KEY, LIMIT_PERIOD_KEY], (res) => {
-    const count = res[LIMIT_COUNT_KEY] ?? 0;
-    const period = res[LIMIT_PERIOD_KEY] || "day";
-    const countEl = document.getElementById("set-limit-count");
-    const periodEl = document.getElementById("set-limit-period");
-    if (countEl) countEl.value = count;
-    if (periodEl) periodEl.value = period;
+  chrome.storage.local.get([USES_BEFORE_PROMPT_KEY], (res) => {
+    const uses = res[USES_BEFORE_PROMPT_KEY] ?? 0;
+    const usesEl = document.getElementById("set-uses-before");
+    if (usesEl) usesEl.value = uses;
   });
 }
 
 function saveSettings() {
-  const countEl = document.getElementById("set-limit-count");
-  const periodEl = document.getElementById("set-limit-period");
-  const count = parseInt(countEl?.value, 10) || 0;
-  const period = periodEl?.value || "day";
-  chrome.storage.local.set({ [LIMIT_COUNT_KEY]: count, [LIMIT_PERIOD_KEY]: period });
+  const usesEl = document.getElementById("set-uses-before");
+  const uses = parseInt(usesEl?.value, 10) || 0;
+  chrome.storage.local.set({ [USES_BEFORE_PROMPT_KEY]: uses });
 }
 
-document.getElementById("set-limit-count")?.addEventListener("change", saveSettings);
-document.getElementById("set-limit-period")?.addEventListener("change", saveSettings);
+document.getElementById("set-uses-before")?.addEventListener("change", saveSettings);
 
 // -------------------------
 // Device ID (for anon/global leaderboards, etc.)
