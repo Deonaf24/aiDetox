@@ -1,5 +1,7 @@
 # aiDetox
 
+Browser extension to journal and limit your AI usage. You can now set how many times you're allowed to use AI within an hour, day, or week before sites get blocked.
+
 ## Build
 
 The build process expects Supabase credentials to be provided as environment variables:

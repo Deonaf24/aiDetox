@@ -1,11 +1,11 @@
-(function () {
+(async function () {
     const LLM_DOMAINS = [
       'chatgpt.com', 'chat.openai.com', 'claude.ai', 'gemini.google.com',
       'perplexity.ai', 'copilot.microsoft.com', 'poe.com',
       'character.ai', 'huggingface.co', 'openrouter.ai'
     ];
     if (!LLM_DOMAINS.some(d => location.hostname.endsWith(d))) return;
-  
+
     // API detection (prevents errors if pasted into console)
     const api = (typeof chrome !== 'undefined' && chrome.runtime)
       ? chrome
@@ -19,6 +19,59 @@
     const TTL = 30 * 1000;           // re-prompt after 30s
     const MIN_CHARS = 10;            // min reason length
     const UNLOCK_DELAY = 10 * 1000;  // 10 seconds lock
+
+    const LIMIT_COUNT_KEY = 'aidetox_limit_count';
+    const LIMIT_PERIOD_KEY = 'aidetox_limit_period';
+    const LOG_KEY = 'aidetox_log';
+    const settings = await new Promise(resolve => {
+      chrome.storage.local.get([LIMIT_COUNT_KEY, LIMIT_PERIOD_KEY, LOG_KEY], resolve);
+    });
+    const limitCount = settings[LIMIT_COUNT_KEY] ?? 0;
+    const limitPeriod = settings[LIMIT_PERIOD_KEY] || 'day';
+    const log = settings[LOG_KEY] || [];
+    const periodMs = limitPeriod === 'hour'
+      ? 60 * 60 * 1000
+      : limitPeriod === 'week'
+        ? 7 * 24 * 60 * 60 * 1000
+        : 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const used = (log || []).filter(e => e.event === 'proceed' && now - e.at < periodMs).length;
+    if (limitCount > 0 && used >= limitCount) {
+      const block = document.createElement('div');
+      block.id = 'aidetox-overlay';
+      block.innerHTML = `
+        <div class="aidetox-card" role="dialog" aria-modal="true">
+          <h1 class="aidetox-title">AI usage limit reached</h1>
+          <p class="aidetox-text">You've hit your ${limitCount} uses per ${limitPeriod}. Take a break.</p>
+          <div class="aidetox-actions">
+            <button class="aidetox-btn" id="aidetox-no">Close this</button>
+          </div>
+        </div>`;
+      const lock = document.createElement('style');
+      lock.textContent = `html, body { overflow: hidden !important; }`;
+      document.documentElement.appendChild(lock);
+      document.documentElement.appendChild(block);
+      block.querySelector('#aidetox-no')?.addEventListener('click', () => {
+        try {
+          api?.runtime?.sendMessage?.({
+            type: 'AIDETOX_LOG',
+            event: 'close',
+            domain: DOMAIN,
+            url: location.href,
+            unlock_delay_ms: 0,
+          });
+        } catch {}
+        setTimeout(() => {
+          if (api && api.runtime && api.runtime.sendMessage) {
+            api.runtime.sendMessage({ type: 'AIDETOX_CLOSE_TAB' });
+          } else {
+            try { window.close(); } catch {}
+            try { location.replace('about:blank'); } catch {}
+          }
+        }, 80);
+      });
+      return;
+    }
   
     // Respect prior short allow
     let until = 0;
