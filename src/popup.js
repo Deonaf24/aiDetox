@@ -286,32 +286,73 @@ function escapeCsv(v) {
 
 function renderTable(log, filter = "all") {
   const wrap = $("#list");
+  if (!wrap) return;
+
   const rows = filter === "all" ? log : log.filter(e => e.event === filter);
 
+  wrap.innerHTML = "";
+
   if (!rows.length) {
-    wrap.innerHTML = `<div class="empty">No entries yet.</div>`;
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No entries yet.";
+    wrap.appendChild(empty);
     return;
   }
 
-  const html = rows.map((e) => `
-    <div class="card ${e.event}">
-      <div class="bar"></div>
-      <div>
-        <div class="title">${e.domain || "Unknown domain"}</div>
-        <p class="reason">${e.reason ? e.reason : "—"}</p>
-        <div class="meta">
-          <span>${fmtTable(e.at)}</span>
-          <span class="dot"></span>
-          <span class="muted">${e.url ? new URL(e.url).hostname : ""}</span>
-        </div>
-      </div>
-      <div class="card-actions">
-        <a class="link" href="${e.url || "#"}" target="_blank">Open</a>
-      </div>
-    </div>
-  `).join("");
+  rows.forEach((e) => {
+    const card = document.createElement("div");
+    card.className = `card ${e.event}`;
 
-  wrap.innerHTML = html;
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    card.appendChild(bar);
+
+    const main = document.createElement("div");
+
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = e.domain || "Unknown domain";
+    main.appendChild(title);
+
+    const reason = document.createElement("p");
+    reason.className = "reason";
+    reason.textContent = e.reason ? e.reason : "—";
+    main.appendChild(reason);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    const spanTime = document.createElement("span");
+    spanTime.textContent = fmtTable(e.at);
+    meta.appendChild(spanTime);
+
+    const spanDot = document.createElement("span");
+    spanDot.className = "dot";
+    meta.appendChild(spanDot);
+
+    const spanHost = document.createElement("span");
+    spanHost.className = "muted";
+    spanHost.textContent = e.url ? new URL(e.url).hostname : "";
+    meta.appendChild(spanHost);
+
+    main.appendChild(meta);
+    card.appendChild(main);
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    const link = document.createElement("a");
+    link.className = "link";
+    link.href = e.url || "#";
+    link.target = "_blank";
+    link.textContent = "Open";
+    actions.appendChild(link);
+
+    card.appendChild(actions);
+
+    wrap.appendChild(card);
+  });
 }
 
 function loadAndRender(filter = "all") {
