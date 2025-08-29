@@ -1,6 +1,7 @@
 # aiDetox
 
-Browser extension to journal and limit your AI usage. Set how many consecutive times you can use AI before a confirmation prompt appears, then the counter resets after you respond.
+Browser extension to journal and limit your AI usage. Set how many consecutive times you can use AI before a confirmation prompt appears, with the counter automatically resetting each hour or day.
+
 
 ## Build
 
