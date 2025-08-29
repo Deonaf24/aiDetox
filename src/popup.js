@@ -16,6 +16,32 @@ const hide = (el) => el && el.classList.add("hidden");
 // Keep track of leaderboard scope toggle
 let LB_SCOPE = "global"; // "global" | "friends"
 
+// Settings keys
+const LIMIT_COUNT_KEY = "aidetox_limit_count";
+const LIMIT_PERIOD_KEY = "aidetox_limit_period";
+
+function loadSettings() {
+  chrome.storage.local.get([LIMIT_COUNT_KEY, LIMIT_PERIOD_KEY], (res) => {
+    const count = res[LIMIT_COUNT_KEY] ?? 0;
+    const period = res[LIMIT_PERIOD_KEY] || "day";
+    const countEl = document.getElementById("set-limit-count");
+    const periodEl = document.getElementById("set-limit-period");
+    if (countEl) countEl.value = count;
+    if (periodEl) periodEl.value = period;
+  });
+}
+
+function saveSettings() {
+  const countEl = document.getElementById("set-limit-count");
+  const periodEl = document.getElementById("set-limit-period");
+  const count = parseInt(countEl?.value, 10) || 0;
+  const period = periodEl?.value || "day";
+  chrome.storage.local.set({ [LIMIT_COUNT_KEY]: count, [LIMIT_PERIOD_KEY]: period });
+}
+
+document.getElementById("set-limit-count")?.addEventListener("change", saveSettings);
+document.getElementById("set-limit-period")?.addEventListener("change", saveSettings);
+
 // -------------------------
 // Device ID (for anon/global leaderboards, etc.)
 // -------------------------
@@ -399,7 +425,10 @@ $$(".tab").forEach(tabBtn => {
 
     if (target === "tab-leaderboards") renderLeaderboards();
     else if (target === "tab-activity") loadAndRender();
-    else if (target === "tab-settings") renderAuthState();
+    else if (target === "tab-settings") {
+      renderAuthState();
+      loadSettings();
+    }
   });
 });
 
@@ -407,6 +436,7 @@ $$(".tab").forEach(tabBtn => {
 // Initial load
 // -------------------------
 loadAndRender();
+loadSettings();
 
 (async () => {
   await restoreSession();
