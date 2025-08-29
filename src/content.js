@@ -19,57 +19,42 @@
     const TTL = 30 * 1000;           // re-prompt after 30s
     const MIN_CHARS = 10;            // min reason length
     const UNLOCK_DELAY = 10 * 1000;  // 10 seconds lock
-
-    const LIMIT_COUNT_KEY = 'aidetox_limit_count';
+    const FREE_USES_KEY = 'aidetox_free_uses';
+    const USES_BEFORE_PROMPT_KEY = 'aidetox_uses_before_prompt';
     const LIMIT_PERIOD_KEY = 'aidetox_limit_period';
-    const LOG_KEY = 'aidetox_log';
+    const LAST_RESET_KEY = 'aidetox_last_reset';
     const settings = await new Promise(resolve => {
-      chrome.storage.local.get([LIMIT_COUNT_KEY, LIMIT_PERIOD_KEY, LOG_KEY], resolve);
+      chrome.storage.local.get([
+        FREE_USES_KEY,
+        USES_BEFORE_PROMPT_KEY,
+        LIMIT_PERIOD_KEY,
+        LAST_RESET_KEY,
+      ], resolve);
     });
-    const limitCount = settings[LIMIT_COUNT_KEY] ?? 0;
-    const limitPeriod = settings[LIMIT_PERIOD_KEY] || 'day';
-    const log = settings[LOG_KEY] || [];
-    const periodMs = limitPeriod === 'hour'
-      ? 60 * 60 * 1000
-      : limitPeriod === 'week'
-        ? 7 * 24 * 60 * 60 * 1000
-        : 24 * 60 * 60 * 1000;
+    let freeUses = settings[FREE_USES_KEY] ?? 0;
+    const usesBeforePrompt = settings[USES_BEFORE_PROMPT_KEY] ?? 0;
+    const limitPeriod = settings[LIMIT_PERIOD_KEY] || 'hour';
+    let lastReset = settings[LAST_RESET_KEY] ?? 0;
     const now = Date.now();
-    const used = (log || []).filter(e => e.event === 'proceed' && now - e.at < periodMs).length;
-    if (limitCount > 0 && used >= limitCount) {
-      const block = document.createElement('div');
-      block.id = 'aidetox-overlay';
-      block.innerHTML = `
-        <div class="aidetox-card" role="dialog" aria-modal="true">
-          <h1 class="aidetox-title">AI usage limit reached</h1>
-          <p class="aidetox-text">You've hit your ${limitCount} uses per ${limitPeriod}. Take a break.</p>
-          <div class="aidetox-actions">
-            <button class="aidetox-btn" id="aidetox-no">Close this</button>
-          </div>
-        </div>`;
-      const lock = document.createElement('style');
-      lock.textContent = `html, body { overflow: hidden !important; }`;
-      document.documentElement.appendChild(lock);
-      document.documentElement.appendChild(block);
-      block.querySelector('#aidetox-no')?.addEventListener('click', () => {
-        try {
-          api?.runtime?.sendMessage?.({
-            type: 'AIDETOX_LOG',
-            event: 'close',
-            domain: DOMAIN,
-            url: location.href,
-            unlock_delay_ms: 0,
-          });
-        } catch {}
-        setTimeout(() => {
-          if (api && api.runtime && api.runtime.sendMessage) {
-            api.runtime.sendMessage({ type: 'AIDETOX_CLOSE_TAB' });
-          } else {
-            try { window.close(); } catch {}
-            try { location.replace('about:blank'); } catch {}
-          }
-        }, 80);
-      });
+    const periodMs = limitPeriod === 'day' ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
+    if (now - lastReset >= periodMs) {
+      freeUses = 0;
+      lastReset = now;
+      chrome.storage.local.set({ [FREE_USES_KEY]: 0, [LAST_RESET_KEY]: lastReset });
+    }
+    if (usesBeforePrompt > 0 && freeUses < usesBeforePrompt) {
+      try {
+        api?.runtime?.sendMessage?.({
+          type: 'AIDETOX_LOG',
+          event: 'proceed',
+          domain: DOMAIN,
+          url: location.href,
+          unlock_delay_ms: 0
+        });
+      } catch {}
+      const data = { [FREE_USES_KEY]: freeUses + 1 };
+      if (freeUses === 0) data[LAST_RESET_KEY] = now;
+      chrome.storage.local.set(data);
       return;
     }
   
@@ -141,6 +126,7 @@
           unlock_delay_ms: UNLOCK_DELAY
         });
       } catch {}
+      chrome.storage.local.set({ [FREE_USES_KEY]: 0, [LAST_RESET_KEY]: Date.now() });
       // small delay to help ensure the log is sent before the tab closes
       setTimeout(() => {
         if (api && api.runtime && api.runtime.sendMessage) {
@@ -217,7 +203,8 @@
           unlock_delay_ms: UNLOCK_DELAY
         });
       } catch {}
-  
+      chrome.storage.local.set({ [FREE_USES_KEY]: 0, [LAST_RESET_KEY]: Date.now() });
+
       // short allow buffer
       try { localStorage.setItem(ALLOW_KEY, String(Date.now() + TTL)); } catch {}
   
