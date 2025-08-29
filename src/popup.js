@@ -19,34 +19,65 @@ let LB_SCOPE = "global"; // "global" | "friends"
 // Settings keys
 const USES_BEFORE_PROMPT_KEY = "aidetox_uses_before_prompt";
 const LIMIT_PERIOD_KEY = "aidetox_limit_period";
+const ALWAYS_ASK_KEY = "aidetox_always_ask";
+const UNLOCK_DELAY_KEY = "aidetox_unlock_delay";
+const MIN_CHARS_KEY = "aidetox_min_chars";
 
 function loadSettings() {
   chrome.storage.local.get([
     USES_BEFORE_PROMPT_KEY,
     LIMIT_PERIOD_KEY,
+    ALWAYS_ASK_KEY,
+    UNLOCK_DELAY_KEY,
+    MIN_CHARS_KEY,
   ], (res) => {
     const uses = res[USES_BEFORE_PROMPT_KEY] ?? 0;
     const period = res[LIMIT_PERIOD_KEY] || "hour";
+    const alwaysAsk = !!res[ALWAYS_ASK_KEY];
+    const unlock = res[UNLOCK_DELAY_KEY] ?? 10;
+    const minChars = res[MIN_CHARS_KEY] ?? 10;
+
     const usesEl = document.getElementById("set-uses-before");
     const periodEl = document.getElementById("set-limit-period");
+    const alwaysAskEl = document.getElementById("set-always-ask");
+    const unlockEl = document.getElementById("set-unlock");
+    const minCharsEl = document.getElementById("set-minchars");
+
     if (usesEl) usesEl.value = uses;
     if (periodEl) periodEl.value = period;
+    if (alwaysAskEl) alwaysAskEl.checked = alwaysAsk;
+    if (unlockEl) unlockEl.value = unlock;
+    if (minCharsEl) minCharsEl.value = minChars;
   });
 }
 
 function saveSettings() {
   const usesEl = document.getElementById("set-uses-before");
   const periodEl = document.getElementById("set-limit-period");
+  const alwaysAskEl = document.getElementById("set-always-ask");
+  const unlockEl = document.getElementById("set-unlock");
+  const minCharsEl = document.getElementById("set-minchars");
+
   const uses = parseInt(usesEl?.value, 10) || 0;
   const period = periodEl?.value === "day" ? "day" : "hour";
+  const alwaysAsk = !!alwaysAskEl?.checked;
+  const unlock = parseInt(unlockEl?.value, 10) || 0;
+  const minChars = parseInt(minCharsEl?.value, 10) || 0;
+
   chrome.storage.local.set({
     [USES_BEFORE_PROMPT_KEY]: uses,
     [LIMIT_PERIOD_KEY]: period,
+    [ALWAYS_ASK_KEY]: alwaysAsk,
+    [UNLOCK_DELAY_KEY]: unlock,
+    [MIN_CHARS_KEY]: minChars,
   });
 }
 
 document.getElementById("set-uses-before")?.addEventListener("change", saveSettings);
 document.getElementById("set-limit-period")?.addEventListener("change", saveSettings);
+document.getElementById("set-always-ask")?.addEventListener("change", saveSettings);
+document.getElementById("set-unlock")?.addEventListener("change", saveSettings);
+document.getElementById("set-minchars")?.addEventListener("change", saveSettings);
 
 // -------------------------
 // Device ID (for anon/global leaderboards, etc.)
