@@ -196,12 +196,14 @@ import { isGoodReason } from './reasonCheck.js';
         return;
       }
   
-      // per-domain local log (optional, keep if you like)
+      // per-domain log stored in extension storage (not page localStorage)
       try {
         const entry = { at: new Date().toISOString(), reason };
-        const arr = JSON.parse(localStorage.getItem(REASONS_KEY) || '[]');
-        arr.push(entry);
-        localStorage.setItem(REASONS_KEY, JSON.stringify(arr));
+        chrome.storage.local.get([REASONS_KEY], (result) => {
+          const arr = result[REASONS_KEY] || [];
+          arr.push(entry);
+          chrome.storage.local.set({ [REASONS_KEY]: arr });
+        });
       } catch {}
   
       // central log in chrome.storage
