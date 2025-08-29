@@ -1,20 +1,13 @@
 // background.js
 
 import { supabase, registerDevice, logEvent } from "./supabaseClient.js";
+import { getStoredSession, clearStoredSession } from "./sessionStorage.js";
 
 const LOG_KEY = 'aidetox_log';
 const MAX_LOG = 1000;
 const DEVICE_KEY = 'aidetox_device_id';
 
 // --- Helpers ---
-async function getStoredSession() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("aidetox_session", (res) => {
-      resolve(res["aidetox_session"] || null);
-    });
-  });
-}
-
 async function getDeviceId() {
   return new Promise((resolve) => {
     chrome.storage.local.get(DEVICE_KEY, (res) => {
@@ -27,6 +20,13 @@ async function getDeviceId() {
       }
     });
   });
+}
+
+// Clear any stored session when the extension is installed, started, or unloaded.
+chrome.runtime.onInstalled.addListener(() => { clearStoredSession(); });
+chrome.runtime.onStartup.addListener(() => { clearStoredSession(); });
+if (chrome.runtime.onSuspend) {
+  chrome.runtime.onSuspend.addListener(() => { clearStoredSession(); });
 }
 
 // --- Supabase logging ---

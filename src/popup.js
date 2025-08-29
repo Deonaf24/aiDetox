@@ -2,6 +2,7 @@
 // Supabase (bundled SDK)
 // -------------------------
 import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
+import { storeSession, getStoredSession } from "./sessionStorage.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
 
@@ -102,39 +103,21 @@ async function getDeviceId() {
 // -------------------------
 // Auth UI state
 // -------------------------
-function storeSession(session) {
-  if (session?.access_token) {
-    chrome.storage.local.set({
-      aidetox_session: {
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-        user: session.user,
-      },
-    });
-  } else {
-    chrome.storage.local.remove("aidetox_session");
-  }
-}
 
 // Restore a previously stored session into the Supabase client
 async function restoreSession() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("aidetox_session", async (res) => {
-      const s = res["aidetox_session"];
-      if (s?.access_token && s?.refresh_token) {
-        try {
-          const { error } = await supabase.auth.setSession({
-            access_token: s.access_token,
-            refresh_token: s.refresh_token,
-          });
-          if (error) console.warn("Session restore failed:", error);
-        } catch (err) {
-          console.warn("Session restore failed:", err);
-        }
-      }
-      resolve();
-    });
-  });
+  const s = await getStoredSession();
+  if (s?.access_token && s?.refresh_token) {
+    try {
+      const { error } = await supabase.auth.setSession({
+        access_token: s.access_token,
+        refresh_token: s.refresh_token,
+      });
+      if (error) console.warn("Session restore failed:", error);
+    } catch (err) {
+      console.warn("Session restore failed:", err);
+    }
+  }
 }
 
 async function renderAuthState() {
