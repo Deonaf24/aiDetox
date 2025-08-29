@@ -1,5 +1,5 @@
 -- Create lb_offgrid_streak function
-CREATE OR REPLACE FUNCTION public.lb_offgrid_streak(p_since timestamptz)
+CREATE OR REPLACE FUNCTION public.lb_offgrid_streak(p_since timestamptz DEFAULT 'epoch'::timestamptz)
 RETURNS TABLE(identity uuid, value bigint)
 LANGUAGE sql STABLE AS $$
   SELECT profile_id AS identity,
