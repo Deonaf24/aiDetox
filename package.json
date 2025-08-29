@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build:dev": "NODE_ENV=development webpack --config webpack.config.js",
-    "build:prod": "NODE_ENV=production webpack --config webpack.config.js"
+    "build:prod": "NODE_ENV=production webpack --config webpack.config.js",
+    "test": "node --require @babel/register --test"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@babel/core": "^7.28.3",
     "@babel/preset-env": "^7.28.3",
+    "@babel/register": "^7.28.0",
     "babel-loader": "^10.0.0",
     "copy-webpack-plugin": "^13.0.1",
     "dotenv-webpack": "^8.1.1",

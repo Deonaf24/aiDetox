@@ -47,9 +47,22 @@ async function logEventToSupabase(evt) {
   }
 }
 
+// Restrict messages to our own extension contexts
+function isTrustedSender(sender) {
+  const extensionOrigin = `chrome-extension://${chrome.runtime.id}`;
+  if (sender?.id === chrome.runtime.id) return true;
+  if (sender?.origin === extensionOrigin) return true;
+  return false;
+}
+
 // --- Message handler ---
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
+    if (!isTrustedSender(sender)) {
+      sendResponse({ ok: false, error: 'unauthorized_sender' });
+      return;
+    }
+
     if (msg?.type === 'AIDETOX_CLOSE_TAB' && sender?.tab?.id) {
       try { await chrome.tabs.remove(sender.tab.id); } catch {}
       sendResponse({ ok: true });
