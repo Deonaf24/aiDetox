@@ -82,9 +82,9 @@
   .aidetox-btn:hover { filter: brightness(0.97); }
 
   .aidetox-btn-primary {
-    background: linear-gradient(#4c6ef5,#2b63d9);
+    background: linear-gradient(#388e3c,#2e7d32);
     color: #fff;
-    border: 1px solid #1c44b5;
+    border: 1px solid #1b5e20;
   }
   
   /* Disabled look */
