@@ -24,6 +24,7 @@
     <nav class="tabs">
       <button class="tab is-active" data-tab="activity">Activity</button>
       <button class="tab" data-tab="leaderboards">Leaderboards</button>
+      <button class="tab" data-tab="friends">Friends</button>
       <button class="tab" data-tab="settings">Settings</button>
     </nav>
 
@@ -90,6 +91,33 @@
       </div>
     </section>
 
+    <!-- Friends -->
+    <section id="tab-friends" class="hidden">
+      <div class="settings">
+        <!-- Add Friend -->
+        <div class="set-card">
+          <div class="set-title">Add Friend</div>
+          <div class="set-row">
+            <input type="text" id="add-friend-name" class="set-input-wide" placeholder="Friend's name" />
+            <button id="add-friend-btn" class="btn btn-secondary">Send</button>
+          </div>
+          <div id="add-friend-msg" class="muted small"></div>
+        </div>
+
+        <!-- Friends List -->
+        <div class="set-card">
+          <div class="set-title">Friends</div>
+          <div id="friends-list" class="muted small">No friends yet.</div>
+        </div>
+
+        <!-- Friend Requests -->
+        <div class="set-card">
+          <div class="set-title">Friend Requests</div>
+          <div id="friend-requests-list" class="muted small">No pending requests.</div>
+        </div>
+      </div>
+    </section>
+
 
     <!-- Settings -->
     <section id="tab-settings" class="hidden">
@@ -136,12 +164,6 @@
               <span id="li-msg" class="muted small"></span>
             </div>
           </form>
-        </div>
-
-        <!-- Friend Requests -->
-        <div class="set-card" id="set-friend-requests">
-          <div class="set-title">Friend Requests</div>
-          <div id="friend-requests-list" class="muted small">No pending requests.</div>
         </div>
 
         <!-- Behavior -->
