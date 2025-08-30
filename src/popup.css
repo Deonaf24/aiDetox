@@ -79,6 +79,8 @@
   .set-row-title{ font-weight:600; min-width:160px; }
   .set-input{ width:90px; padding:6px 8px; border:1px solid var(--border); border-radius:10px; background:#fff; color:#111; }
   .set-input-wide{ width:220px; padding:6px 8px; border:1px solid var(--border); border-radius:10px; background:#fff; color:#111; }
+
+  .fr-item .fr-name{ flex:1; }
   
   /* switch */
   .switch{ position:relative; width:44px; height:24px; display:inline-block; }

@@ -1,7 +1,13 @@
 // -------------------------
 // Supabase (bundled SDK)
 // -------------------------
-import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
+import {
+  supabase,
+  SUPABASE_ANON_KEY,
+  SUPABASE_URL,
+  acceptFriendRequest,
+  declineFriendRequest
+} from "./supabaseClient.js";
 import { storeSession, getStoredSession } from "./sessionStorage.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
@@ -467,6 +473,84 @@ async function renderLeaderboards() {
   renderRanklist("lb-saves-list", lb3);
 }
 
+// -------------------------
+// Friend Requests
+// -------------------------
+let frChannel = null;
+
+async function renderFriendRequests() {
+  const list = document.getElementById('friend-requests-list');
+  if (!list) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  const me = session?.user;
+  if (!me) {
+    list.textContent = 'Sign in to view requests.';
+    return;
+  }
+  const { data, error } = await supabase
+    .from('friend_requests')
+    .select('sender, profiles:sender(display_name)')
+    .eq('receiver', me.id)
+    .eq('status', 'pending');
+  if (error) {
+    console.error('Friend request fetch failed:', error);
+    return;
+  }
+  if (!data?.length) {
+    list.textContent = 'No pending requests.';
+    return;
+  }
+  list.innerHTML = '';
+  for (const req of data) {
+    const name = req.profiles?.display_name || req.sender;
+    const div = document.createElement('div');
+    div.className = 'set-row fr-item';
+    div.innerHTML = `<span class="fr-name">${name}</span> <button class="btn btn-secondary" data-accept="${req.sender}">Accept</button> <button class="btn btn-danger" data-decline="${req.sender}">Decline</button>`;
+    list.appendChild(div);
+  }
+  list.querySelectorAll('[data-accept]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sender = btn.getAttribute('data-accept');
+      await acceptFriendRequest(sender, me.id);
+      renderFriendRequests();
+    });
+  });
+  list.querySelectorAll('[data-decline]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sender = btn.getAttribute('data-decline');
+      await declineFriendRequest(sender, me.id);
+      renderFriendRequests();
+    });
+  });
+}
+
+function subscribeFriendRequests(userId) {
+  if (frChannel) supabase.removeChannel(frChannel);
+  frChannel = supabase
+    .channel('friend_requests')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'friend_requests', filter: `receiver=eq.${userId}` }, () => {
+      renderFriendRequests();
+    })
+    .subscribe();
+}
+
+async function initFriendRequests() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const me = session?.user;
+  if (!me) return;
+  await renderFriendRequests();
+  subscribeFriendRequests(me.id);
+}
+
+function cleanupFriendRequests() {
+  if (frChannel) {
+    supabase.removeChannel(frChannel);
+    frChannel = null;
+  }
+  const list = document.getElementById('friend-requests-list');
+  if (list) list.textContent = 'No pending requests.';
+}
+
 // Scope toggle (Global / Friends)
 $$(".seg-scope").forEach(btn => {
   btn.addEventListener("click", async () => {
@@ -511,6 +595,7 @@ loadSettings();
 (async () => {
   await restoreSession();
   await renderAuthState();
+  await initFriendRequests();
 
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === "INITIAL_SESSION") {
@@ -520,9 +605,11 @@ loadSettings();
       storeSession(session);
     } else if (event === "SIGNED_OUT") {
       storeSession(null);
+      cleanupFriendRequests();
     } else if (event === "SIGNED_IN") {
       storeSession(session);
       await ensureProfile(session?.user);
+      await initFriendRequests();
     }
     await renderAuthState();
   });
