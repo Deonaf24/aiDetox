@@ -1,7 +1,7 @@
 // -------------------------
 // Supabase (bundled SDK)
 // -------------------------
-import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
+import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL, sendFriendRequest, getFriends, getFriendRequests, acceptFriendRequest, declineFriendRequest } from "./supabaseClient.js";
 import { storeSession, getStoredSession } from "./sessionStorage.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
@@ -489,6 +489,87 @@ async function renderLeaderboards() {
   renderRanklist("lb-saves-list", lb3);
 }
 
+async function renderFriendsTab() {
+  const listEl = $("#friends-list");
+  const reqEl = $("#friend-requests");
+  const msgEl = $("#add-friend-msg");
+  if (msgEl) msgEl.textContent = "";
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) {
+    if (listEl) listEl.innerHTML = "<li class='empty'>Log in to see friends.</li>";
+    if (reqEl) reqEl.innerHTML = "<li class='empty'>Log in to see requests.</li>";
+    return;
+  }
+
+  const me = session.user.id;
+
+  const friendRows = await getFriends(me);
+  const friendIds = friendRows.map(r => r.owner === me ? r.friend : r.owner);
+  if (friendIds.length) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', friendIds);
+    listEl.innerHTML = friendIds.map(id => {
+      const name = profiles?.find(p => p.id === id)?.username || id;
+      return `<li>${name}</li>`;
+    }).join('');
+  } else {
+    listEl.innerHTML = "<li class='empty'>No friends yet.</li>";
+  }
+
+  const reqRows = await getFriendRequests(me);
+  if (reqRows.length) {
+    const ids = reqRows.map(r => r.requester);
+    const { data: rProfiles } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', ids);
+    reqEl.innerHTML = reqRows.map(r => {
+      const name = rProfiles?.find(p => p.id === r.requester)?.username || r.requester;
+      return `<li data-id="${r.requester}"><span>${name}</span><span class="actions"><button class="btn btn-secondary btn-sm accept">Accept</button><button class="btn btn-danger btn-sm decline">Decline</button></span></li>`;
+    }).join('');
+  } else {
+    reqEl.innerHTML = "<li class='empty'>No friend requests.</li>";
+  }
+}
+
+// Friend actions
+$("#add-friend-btn")?.addEventListener("click", async () => {
+  const username = $("#add-friend-username")?.value.trim();
+  const msg = $("#add-friend-msg");
+  if (msg) msg.textContent = "";
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) { msg.textContent = "Log in first."; return; }
+  const { error } = await sendFriendRequest(session.user.id, username);
+  if (error === 'not_found') msg.textContent = "User not found.";
+  else if (error === 'self') msg.textContent = "That's you!";
+  else if (error) msg.textContent = "Could not send request.";
+  else {
+    msg.textContent = "Request sent!";
+    const input = $("#add-friend-username");
+    if (input) input.value = "";
+  }
+});
+
+$("#friend-requests")?.addEventListener("click", async (e) => {
+  const btn = e.target;
+  const li = btn.closest("li");
+  if (!li) return;
+  const requester = li.dataset.id;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return;
+  if (btn.classList.contains("accept")) {
+    await acceptFriendRequest(requester, session.user.id);
+  } else if (btn.classList.contains("decline")) {
+    await declineFriendRequest(requester, session.user.id);
+  } else {
+    return;
+  }
+  await renderFriendsTab();
+});
+
 // Scope toggle (Global / Friends)
 $$(".seg-scope").forEach(btn => {
   btn.addEventListener("click", async () => {
@@ -520,6 +601,8 @@ $$(".tab").forEach(tabBtn => {
     else if (target === "tab-settings") {
       renderAuthState();
       loadSettings();
+    } else if (target === "tab-friends") {
+      renderFriendsTab();
     }
   });
 });
