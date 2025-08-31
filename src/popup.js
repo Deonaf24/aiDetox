@@ -1,7 +1,14 @@
 // -------------------------
 // Supabase (bundled SDK)
 // -------------------------
-import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient.js";
+import {
+  supabase,
+  SUPABASE_ANON_KEY,
+  SUPABASE_URL,
+  acceptFriendRequest,
+  declineFriendRequest,
+  addFriend
+} from "./supabaseClient.js";
 import { storeSession, getStoredSession } from "./sessionStorage.js";
 
 const FN_LEADERBOARDS = `${SUPABASE_URL}/functions/v1/leaderboards`;
@@ -133,7 +140,18 @@ async function renderAuthState() {
     if (error) throw error;
 
     if (session?.user) {
-      status.textContent = `Logged in as ${session.user.email}`;
+      let name = session.user.email;
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        if (profile?.username) name = profile.username;
+      } catch (e) {
+        console.error("Profile fetch failed:", e);
+      }
+      status.textContent = `Logged in as ${name}`;
       hide(btnSignup); hide(btnLogin); show(btnLogout);
       hide(formSignup); hide(formLogin);
       // Store session so background script can authenticate
@@ -153,23 +171,13 @@ async function renderAuthState() {
 // Ensure a profile exists for the given auth user
 async function ensureProfile(user) {
   if (!user) return;
-  const { data: existing, error } = await supabase
+  const display_name = user.user_metadata?.full_name || null;
+  const username = user.user_metadata?.username || null;
+  const { error } = await supabase
     .from("profiles")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
+    .upsert({ id: user.id, display_name, username });
   if (error) {
-    console.error("Profile lookup failed:", error);
-    return;
-  }
-  if (!existing) {
-    const display_name = user.user_metadata?.full_name || null;
-    const { error: insertErr } = await supabase
-      .from("profiles")
-      .insert({ id: user.id, display_name });
-    if (insertErr) {
-      console.error("Profile creation failed:", insertErr.message);
-    }
+    console.error("Profile upsert failed:", error.message);
   }
 }
 
@@ -198,20 +206,26 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
   msg.textContent = "";
 
   const email    = $("#su-email").value.trim();
+  const username = $("#su-username").value.trim();
   const password = $("#su-password").value;
 
-  if (!email || !password) {
+  if (!email || !password || !username) {
     msg.textContent = "Please fill all fields.";
     return;
   }
 
-  const { error: signUpErr } = await supabase.auth.signUp({
+  const { data, error: signUpErr } = await supabase.auth.signUp({
     email,
     password,
+    options: { data: { username } }
   });
   if (signUpErr) {
     msg.textContent = `Sign up failed: ${signUpErr.message}`;
     return;
+  }
+
+  if (data?.user) {
+    await ensureProfile(data.user);
   }
 
   msg.textContent = "Account created! Check your email if verification is required.";
@@ -467,6 +481,160 @@ async function renderLeaderboards() {
   renderRanklist("lb-saves-list", lb3);
 }
 
+// -------------------------
+// Friend Requests
+// -------------------------
+let frChannel = null;
+
+async function renderFriendsList() {
+  const list = document.getElementById('friends-list');
+  if (!list) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  const me = session?.user;
+  if (!me) {
+    list.textContent = 'Sign in to see friends.';
+    return;
+  }
+  const { data, error } = await supabase
+    .from('friends')
+    .select('owner, friend')
+    .or(`owner.eq.${me.id},friend.eq.${me.id}`);
+  if (error) {
+    console.error('Friend list fetch failed:', error);
+    return;
+  }
+  if (!data?.length) {
+    list.textContent = 'No friends yet.';
+    return;
+  }
+  const ids = Array.from(new Set(data.map(r => r.owner === me.id ? r.friend : r.owner)));
+  const { data: profiles, error: profErr } = await supabase
+    .from('profiles')
+    .select('id, display_name')
+    .in('id', ids);
+  if (profErr) {
+    console.error('Profile lookup failed:', profErr);
+    return;
+  }
+  const nameById = new Map(profiles.map(p => [p.id, p.display_name]));
+  list.innerHTML = '';
+  ids.forEach(id => {
+    const name = nameById.get(id) || id;
+    const div = document.createElement('div');
+    div.className = 'set-row fr-item';
+    div.innerHTML = `<span class="fr-name">${name}</span>`;
+    list.appendChild(div);
+  });
+}
+
+async function renderFriendRequests() {
+  const list = document.getElementById('friend-requests-list');
+  if (!list) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  const me = session?.user;
+  if (!me) {
+    list.textContent = 'Sign in to view requests.';
+    return;
+  }
+  const { data, error } = await supabase
+    .from('friend_requests')
+    .select('sender, profiles:sender(display_name)')
+    .eq('receiver', me.id)
+    .eq('status', 'pending');
+  if (error) {
+    console.error('Friend request fetch failed:', error);
+    return;
+  }
+  if (!data?.length) {
+    list.textContent = 'No pending requests.';
+    return;
+  }
+  list.innerHTML = '';
+  for (const req of data) {
+    const name = req.profiles?.display_name || req.sender;
+    const div = document.createElement('div');
+    div.className = 'set-row fr-item';
+    div.innerHTML = `<span class="fr-name">${name}</span> <button class="btn btn-secondary" data-accept="${req.sender}">Accept</button> <button class="btn btn-danger" data-decline="${req.sender}">Decline</button>`;
+    list.appendChild(div);
+  }
+  list.querySelectorAll('[data-accept]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sender = btn.getAttribute('data-accept');
+      await acceptFriendRequest(sender, me.id);
+      renderFriendRequests();
+      renderFriendsList();
+    });
+  });
+  list.querySelectorAll('[data-decline]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sender = btn.getAttribute('data-decline');
+      await declineFriendRequest(sender, me.id);
+      renderFriendRequests();
+    });
+  });
+}
+
+function subscribeFriendRequests(userId) {
+  if (frChannel) supabase.removeChannel(frChannel);
+  frChannel = supabase
+    .channel('friend_requests')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'friend_requests', filter: `receiver=eq.${userId}` }, () => {
+      renderFriendRequests();
+    })
+    .subscribe();
+}
+
+async function initFriends() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const me = session?.user;
+  if (!me) return;
+  await renderFriendsList();
+  await renderFriendRequests();
+  subscribeFriendRequests(me.id);
+}
+
+function cleanupFriends() {
+  if (frChannel) {
+    supabase.removeChannel(frChannel);
+    frChannel = null;
+  }
+  const reqList = document.getElementById('friend-requests-list');
+  if (reqList) reqList.textContent = 'No pending requests.';
+  const frList = document.getElementById('friends-list');
+  if (frList) frList.textContent = 'No friends yet.';
+}
+
+document.getElementById('add-friend-btn')?.addEventListener('click', async () => {
+  const input = document.getElementById('add-friend-name');
+  const msg = document.getElementById('add-friend-msg');
+  if (!input || !msg) return;
+  const name = input.value.trim();
+  msg.textContent = '';
+  const { data: { session } } = await supabase.auth.getSession();
+  const me = session?.user;
+  if (!me) {
+    msg.textContent = 'Sign in to send requests.';
+    return;
+  }
+  if (!name) return;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('display_name', name)
+    .maybeSingle();
+  if (error || !data) {
+    msg.textContent = 'User not found.';
+    return;
+  }
+  if (data.id === me.id) {
+    msg.textContent = 'You cannot add yourself.';
+    return;
+  }
+  await addFriend(me.id, data.id);
+  msg.textContent = 'Request sent!';
+  input.value = '';
+});
+
 // Scope toggle (Global / Friends)
 $$(".seg-scope").forEach(btn => {
   btn.addEventListener("click", async () => {
@@ -498,6 +666,9 @@ $$(".tab").forEach(tabBtn => {
     else if (target === "tab-settings") {
       renderAuthState();
       loadSettings();
+    } else if (target === "tab-friends") {
+      renderFriendsList();
+      renderFriendRequests();
     }
   });
 });
@@ -511,6 +682,7 @@ loadSettings();
 (async () => {
   await restoreSession();
   await renderAuthState();
+  await initFriends();
 
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === "INITIAL_SESSION") {
@@ -520,9 +692,11 @@ loadSettings();
       storeSession(session);
     } else if (event === "SIGNED_OUT") {
       storeSession(null);
+      cleanupFriends();
     } else if (event === "SIGNED_IN") {
       storeSession(session);
       await ensureProfile(session?.user);
+      await initFriends();
     }
     await renderAuthState();
   });

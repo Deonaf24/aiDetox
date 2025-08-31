@@ -15,7 +15,8 @@ export async function ensureProfile(user) {
   if (!user?.id) return;
   await supabase.from('profiles').upsert({
     id: user.id,
-    display_name: user.user_metadata?.full_name || null
+    display_name: user.user_metadata?.full_name || null,
+    username: user.user_metadata?.username || null
   });
 }
 
@@ -33,7 +34,36 @@ export async function logEvent({ profile_id, device_id, domain, url, reason, unl
   });
 }
 
+// Create a pending friend request instead of inserting directly into friends
 export async function addFriend(owner, friend) {
   if (!owner || !friend) return;
-  await supabase.from('friends').insert({ owner, friend });
+  await supabase.from('friend_requests').insert({
+    sender: owner,
+    receiver: friend,
+    status: 'pending'
+  });
+}
+
+// Accept a pending friend request
+export async function acceptFriendRequest(sender, receiver) {
+  if (!sender || !receiver) return;
+  const { error: insertErr } = await supabase
+    .from('friends')
+    .insert({ owner: sender, friend: receiver });
+  if (insertErr) return;
+  await supabase
+    .from('friend_requests')
+    .update({ status: 'accepted' })
+    .eq('sender', sender)
+    .eq('receiver', receiver);
+}
+
+// Decline a pending friend request
+export async function declineFriendRequest(sender, receiver) {
+  if (!sender || !receiver) return;
+  await supabase
+    .from('friend_requests')
+    .update({ status: 'declined' })
+    .eq('sender', sender)
+    .eq('receiver', receiver);
 }
