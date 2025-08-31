@@ -132,6 +132,30 @@ serve(async (req: Request) => {
 
     if (scope === "friends" && friendIds) {
       entries = entries.filter((e) => friendIds!.has(e.id));
+
+      const existing = new Set(entries.map((e) => e.id));
+      const missing = [...friendIds].filter((id) => !existing.has(id));
+
+      if (missing.length > 0) {
+        const { data: profileRows } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", missing);
+
+        const nameMap = new Map(
+          (profileRows ?? []).map((p: any) => [String(p.id), String(p.display_name)])
+        );
+
+        for (const id of missing) {
+          entries.push({
+            id,
+            name: id === meId ? "You" : nameMap.get(id) || "User",
+            val: 0,
+          });
+        }
+      }
+
+      entries.sort((a, b) => b.val - a.val);
     }
 
     let meRank = meId ? entries.findIndex((e) => e.id === meId) + 1 : 0;
