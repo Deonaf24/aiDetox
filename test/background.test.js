@@ -12,6 +12,9 @@ const chromeStub = {
         listener = cb;
       },
     },
+    onInstalled: { addListener() {} },
+    onStartup: { addListener() {} },
+    onSuspend: { addListener() {} },
   },
   storage: {
     local: {
