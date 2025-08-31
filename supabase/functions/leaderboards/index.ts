@@ -122,13 +122,10 @@ serve(async (req: Request) => {
 
     if (error) return err("rpc_failed", 500, error.message);
 
-    // Shape + rank
+    // Shape + rank (names are resolved later)
     let entries = (data ?? [])
       .map((r: any) => ({
         id: String(r.identity),
-        name: String(r.identity).startsWith("dev_")
-          ? String(r.identity).slice(4, 10)
-          : "User",
         val: Number(r.value) || 0,
       }))
       .sort((a: any, b: any) => b.val - a.val);
@@ -162,22 +159,44 @@ serve(async (req: Request) => {
     }
 
     let meRank = meId ? entries.findIndex((e) => e.id === meId) + 1 : 0;
-    if (scope !== "friends" && meId && meRank === 0) {
-      entries.push({ id: meId, name: "You", val: 0 });
+    if (meId && meRank === 0) {
+      entries.push({ id: meId, val: 0 });
       entries.sort((a, b) => b.val - a.val);
       meRank = entries.findIndex((e) => e.id === meId) + 1;
     }
 
-    const top5 = entries.slice(0, 5);
+    let top5 = entries.slice(0, 5);
+    const idsToFetch = new Set(top5.map((e) => e.id));
+    if (meId && meRank > 5) idsToFetch.add(meId);
+
+    let nameMap = new Map<string, string>();
+    if (idsToFetch.size > 0) {
+      const { data: profiles, error: profilesErr } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", Array.from(idsToFetch));
+      if (profilesErr) return err("profiles_query_failed", 500, profilesErr.message);
+
+      for (const row of profiles ?? []) {
+        nameMap.set(row.id, row.display_name || "");
+      }
+    }
+
+    const resolveName = (id: string) =>
+      nameMap.get(id) ||
+      (String(id).startsWith("dev_") ? String(id).slice(4, 10) : "User");
+
+    top5 = top5.map((e) => ({ ...e, name: resolveName(e.id) }));
+
     const meRow =
       meId && meRank > 5
-        ? { rank: meRank, ...entries[meRank - 1] }
+        ? { rank: meRank, id: meId, name: resolveName(meId), val: entries[meRank - 1].val }
         : meId
         ? {
             rank: meRank,
             id: meId,
             name: "You",
-            val: entries.find((e) => e.id === meId)?.val ?? 0,
+            val: top5.find((e) => e.id === meId)?.val ?? 0,
           }
         : null;
 
