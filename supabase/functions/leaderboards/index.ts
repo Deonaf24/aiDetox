@@ -77,19 +77,23 @@ serve(async (req: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
+    // Parse auth header for optional user context
+    const authHeader =
+      req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    let authUser: any = null;
+    if (token) {
+      const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
+      if (!userErr && user) {
+        authUser = user;
+        meId = user.id; // prefer auth user id over device_id
+      }
+    }
+
     // Collect friends if needed
     let friendIds: Set<string> | null = null;
     if (scope === "friends") {
-      const authHeader =
-        req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
-      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-
-      if (!token) return err("login_required", 401);
-
-      const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
-      if (userErr || !user) return err("login_required", 401, userErr?.message);
-
-      meId = user.id;
+      if (!authUser) return err("login_required", 401);
 
       const { data: friendRows, error: friendsErr } = await supabase
         .from("friends")
@@ -130,6 +134,8 @@ serve(async (req: Request) => {
       }))
       .sort((a: any, b: any) => b.val - a.val);
 
+    const nameMap = new Map<string, string>();
+
     if (scope === "friends" && friendIds) {
       entries = entries.filter((e) => friendIds!.has(e.id));
 
@@ -139,19 +145,15 @@ serve(async (req: Request) => {
       if (missing.length > 0) {
         const { data: profileRows } = await supabase
           .from("profiles")
-          .select("id, display_name")
+          .select("id, username, display_name")
           .in("id", missing);
 
-        const nameMap = new Map(
-          (profileRows ?? []).map((p: any) => [String(p.id), String(p.display_name)])
-        );
+        for (const p of profileRows ?? []) {
+          nameMap.set(String(p.id), p.username || p.display_name || "");
+        }
 
         for (const id of missing) {
-          entries.push({
-            id,
-            name: id === meId ? "You" : nameMap.get(id) || "User",
-            val: 0,
-          });
+          entries.push({ id, val: 0 });
         }
       }
 
@@ -159,32 +161,38 @@ serve(async (req: Request) => {
     }
 
     let meRank = meId ? entries.findIndex((e) => e.id === meId) + 1 : 0;
-    if (meId && meRank === 0) {
+    let top5 = entries.slice(0, 5);
+
+    // If we have a user context but they aren't in the top list, insert a zero row
+    if (meId && meRank === 0 && !top5.some((e) => e.id === meId)) {
       entries.push({ id: meId, val: 0 });
       entries.sort((a, b) => b.val - a.val);
       meRank = entries.findIndex((e) => e.id === meId) + 1;
+      top5 = entries.slice(0, 5);
     }
 
     const list = scope === "friends" ? entries : entries.slice(0, 5);
     const idsToFetch = new Set(list.map((e) => e.id));
     if (meId && !list.some((e) => e.id === meId)) idsToFetch.add(meId);
 
-    let nameMap = new Map<string, string>();
     if (idsToFetch.size > 0) {
       const { data: profiles, error: profilesErr } = await supabase
         .from("profiles")
-        .select("id, display_name")
+        .select("id, username, display_name")
         .in("id", Array.from(idsToFetch));
       if (profilesErr) return err("profiles_query_failed", 500, profilesErr.message);
 
       for (const row of profiles ?? []) {
-        nameMap.set(row.id, row.display_name || "");
+        nameMap.set(row.id, row.username || row.display_name || "");
       }
     }
 
-    const resolveName = (id: string) =>
-      nameMap.get(id) ||
-      (String(id).startsWith("dev_") ? String(id).slice(4, 10) : "User");
+    const resolveName = (id: string) => {
+      const known = nameMap.get(id);
+      if (known) return known;
+      const clean = String(id).startsWith("dev_") ? String(id).slice(4) : String(id);
+      return clean.slice(0, 10);
+    };
 
     const namedList = list.map((e) => ({
       ...e,
@@ -200,7 +208,6 @@ serve(async (req: Request) => {
           val: entries[meRank - 1]?.val ?? 0,
         }
       : null;
-
     return json({ entries: namedList, me: meRow });
   } catch (e) {
     return err("unhandled", 500, String(e));

@@ -14,6 +14,15 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 const show = (el) => el && el.classList.remove("hidden");
 const hide = (el) => el && el.classList.add("hidden");
 
+// Basic HTML escaping to prevent injection when building strings
+function escapeHtml(str = "") {
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;");
+}
+
 // Keep track of leaderboard scope toggle
 let LB_SCOPE = "global"; // "global" | "friends"
 
@@ -488,7 +497,7 @@ function renderRanklist(containerId, lb) {
   const rows = lb.entries.map((e, i) => `
     <div class="row ${lb.me && lb.me.id === e.id ? "me" : ""}">
       <span class="rank">${i + 1}</span>
-      <span class="name">${e.name}</span>
+      <span class="name">${escapeHtml(e.name)}</span>
       <span class="val">${e.val}</span>
     </div>
   `).join("");
