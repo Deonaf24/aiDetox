@@ -77,19 +77,23 @@ serve(async (req: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
+    // Parse auth header for optional user context
+    const authHeader =
+      req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    let authUser: any = null;
+    if (token) {
+      const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
+      if (!userErr && user) {
+        authUser = user;
+        meId = user.id; // prefer auth user id over device_id
+      }
+    }
+
     // Collect friends if needed
     let friendIds: Set<string> | null = null;
     if (scope === "friends") {
-      const authHeader =
-        req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
-      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-
-      if (!token) return err("login_required", 401);
-
-      const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
-      if (userErr || !user) return err("login_required", 401, userErr?.message);
-
-      meId = user.id;
+      if (!authUser) return err("login_required", 401);
 
       const { data: friendRows, error: friendsErr } = await supabase
         .from("friends")
@@ -157,13 +161,15 @@ serve(async (req: Request) => {
     }
 
     let meRank = meId ? entries.findIndex((e) => e.id === meId) + 1 : 0;
-    if (meId && meRank === 0) {
+    let top5 = entries.slice(0, 5);
+
+    // If we have a user context but they aren't in the top list, insert a zero row
+    if (meId && meRank === 0 && !top5.some((e) => e.id === meId)) {
       entries.push({ id: meId, val: 0 });
       entries.sort((a, b) => b.val - a.val);
       meRank = entries.findIndex((e) => e.id === meId) + 1;
+      top5 = entries.slice(0, 5);
     }
-
-    let top5 = entries.slice(0, 5);
     const idsToFetch = new Set(top5.map((e) => e.id));
     if (meId && meRank > 5) idsToFetch.add(meId);
 
