@@ -23,9 +23,9 @@
 
     <nav class="tabs">
       <button class="tab is-active" data-tab="activity">Activity</button>
-      <button class="tab" data-tab="settings">Settings</button>
-      <button class="tab" data-tab="friends">Friends</button>
       <button class="tab" data-tab="leaderboards">Leaderboards</button>
+      <button class="tab" data-tab="friends">Friends</button>
+      <button class="tab" data-tab="settings">Settings</button>
     </nav>
 
     <!-- Activity -->
@@ -43,28 +43,6 @@
         </div>
       </section>
       <main id="list" class="list"></main>
-    </section>
-
-    <!-- Friends -->
-    <section id="tab-friends" class="hidden">
-      <div class="friends">
-        <div class="friend-card">
-          <div class="friend-title">Add Friend</div>
-          <div class="friend-row">
-            <input id="add-friend-username" class="set-input-wide" placeholder="username" />
-            <button id="add-friend-btn" class="btn btn-secondary">Add</button>
-            <span id="add-friend-msg" class="muted small"></span>
-          </div>
-        </div>
-        <div class="friend-card">
-          <div class="friend-title">Friend Requests</div>
-          <ul id="friend-requests" class="friend-list"></ul>
-        </div>
-        <div class="friend-card">
-          <div class="friend-title">Friends</div>
-          <ul id="friends-list" class="friend-list"></ul>
-        </div>
-      </div>
     </section>
 
     <!-- Leaderboards -->
@@ -113,6 +91,27 @@
       </div>
     </section>
 
+    <!-- Friends -->
+    <section id="tab-friends" class="hidden">
+      <div class="friends">
+        <div class="friend-card">
+          <div class="friend-title">Add Friend</div>
+          <div class="friend-row">
+            <input id="add-friend-username" class="set-input-wide" placeholder="username" />
+            <button id="add-friend-btn" class="btn btn-secondary">Add</button>
+            <span id="add-friend-msg" class="muted small"></span>
+          </div>
+        </div>
+        <div class="friend-card">
+          <div class="friend-title">Friend Requests</div>
+          <ul id="friend-requests" class="friend-list"></ul>
+        </div>
+        <div class="friend-card">
+          <div class="friend-title">Friends</div>
+          <ul id="friends-list" class="friend-list"></ul>
+        </div>
+      </div>
+    </section>
 
     <!-- Settings -->
     <section id="tab-settings" class="hidden">
