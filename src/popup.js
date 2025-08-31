@@ -289,6 +289,24 @@ function escapeCsv(v) {
   return /[",\n]/.test(s) ? `"${s}"` : s;
 }
 
+function updateStats(log = []) {
+  const totalEl = document.getElementById("stat-total");
+  const proceedEl = document.getElementById("stat-proceed");
+  const closeEl = document.getElementById("stat-close");
+
+  const total = log.length;
+  let proceed = 0;
+  let close = 0;
+  for (const entry of log) {
+    if (entry.event === "proceed") proceed++;
+    else if (entry.event === "close") close++;
+  }
+
+  if (totalEl) totalEl.textContent = String(total);
+  if (proceedEl) proceedEl.textContent = String(proceed);
+  if (closeEl) closeEl.textContent = String(close);
+}
+
 function renderTable(log, filter = "all") {
   const wrap = $("#list");
   if (!wrap) return;
@@ -363,7 +381,9 @@ function renderTable(log, filter = "all") {
 function loadAndRender(filter = "all") {
   chrome.runtime.sendMessage({ type: "AIDETOX_GET_LOG" }, (res) => {
     if (!res?.ok) return;
-    renderTable(res.log || [], filter);
+    const log = res.log || [];
+    updateStats(log);
+    renderTable(log, filter);
   });
 }
 
