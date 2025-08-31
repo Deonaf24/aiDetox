@@ -133,7 +133,16 @@ async function renderAuthState() {
     if (error) throw error;
 
     if (session?.user) {
-      status.textContent = `Logged in as ${session.user.email}`;
+      let username = session.user.user_metadata?.username;
+      if (!username) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        username = profile?.username || null;
+      }
+      status.textContent = `Logged in as ${username || session.user.email}`;
       hide(btnSignup); hide(btnLogin); show(btnLogout);
       hide(formSignup); hide(formLogin);
       // Store session so background script can authenticate
@@ -152,24 +161,16 @@ async function renderAuthState() {
 
 // Ensure a profile exists for the given auth user
 async function ensureProfile(user) {
-  if (!user) return;
-  const { data: existing, error } = await supabase
+  if (!user?.id) return;
+  const { error } = await supabase
     .from("profiles")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
+    .upsert({
+      id: user.id,
+      display_name: user.user_metadata?.full_name || null,
+      username: user.user_metadata?.username || null,
+    });
   if (error) {
-    console.error("Profile lookup failed:", error);
-    return;
-  }
-  if (!existing) {
-    const display_name = user.user_metadata?.full_name || null;
-    const { error: insertErr } = await supabase
-      .from("profiles")
-      .insert({ id: user.id, display_name });
-    if (insertErr) {
-      console.error("Profile creation failed:", insertErr.message);
-    }
+    console.error("Profile upsert failed:", error.message);
   }
 }
 
@@ -198,20 +199,41 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
   msg.textContent = "";
 
   const email    = $("#su-email").value.trim();
+  const username = $("#su-username").value.trim();
   const password = $("#su-password").value;
 
-  if (!email || !password) {
+  if (!email || !password || !username) {
     msg.textContent = "Please fill all fields.";
     return;
   }
 
-  const { error: signUpErr } = await supabase.auth.signUp({
+  // Check if username is taken
+  const { data: existing, error: lookupErr } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle();
+  if (lookupErr) {
+    msg.textContent = "Could not verify username.";
+    return;
+  }
+  if (existing) {
+    msg.textContent = "Username already taken.";
+    return;
+  }
+
+  const { data, error: signUpErr } = await supabase.auth.signUp({
     email,
     password,
+    options: { data: { username } },
   });
   if (signUpErr) {
     msg.textContent = `Sign up failed: ${signUpErr.message}`;
     return;
+  }
+
+  if (data?.user) {
+    await ensureProfile(data.user);
   }
 
   msg.textContent = "Account created! Check your email if verification is required.";
