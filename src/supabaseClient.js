@@ -34,7 +34,58 @@ export async function logEvent({ profile_id, device_id, domain, url, reason, unl
   });
 }
 
-export async function addFriend(owner, friend) {
-  if (!owner || !friend) return;
-  await supabase.from('friends').insert({ owner, friend });
+export async function sendFriendRequest(requester, username) {
+  if (!requester || !username) return { error: 'invalid' };
+
+  const { data: profile, error: profileErr } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('username', username)
+    .maybeSingle();
+
+  if (profileErr || !profile) return { error: 'not_found' };
+  if (profile.id === requester) return { error: 'self' };
+
+  const { error } = await supabase
+    .from('friend_requests')
+    .insert({ requester, requestee: profile.id });
+
+  return { error: error?.message || null };
+}
+
+export async function getFriends(userId) {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('friends')
+    .select('owner, friend')
+    .or(`owner.eq.${userId},friend.eq.${userId}`);
+  if (error) return [];
+  return data || [];
+}
+
+export async function getFriendRequests(userId) {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('friend_requests')
+    .select('requester, requestee')
+    .eq('requestee', userId);
+  if (error) return [];
+  return data || [];
+}
+
+export async function acceptFriendRequest(requester, requestee) {
+  if (!requester || !requestee) return;
+  await supabase.from('friends').insert({ owner: requester, friend: requestee });
+  await supabase
+    .from('friend_requests')
+    .delete()
+    .match({ requester, requestee });
+}
+
+export async function declineFriendRequest(requester, requestee) {
+  if (!requester || !requestee) return;
+  await supabase
+    .from('friend_requests')
+    .delete()
+    .match({ requester, requestee });
 }
