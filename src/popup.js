@@ -493,8 +493,10 @@ function renderRanklist(containerId, lb) {
     </div>
   `).join("");
 
-  const meRow = lb.me && lb.me.rank > 5
-    ? `<div class="row me"><span class="rank">${lb.me.rank}</span><span class="name">${lb.me.name}</span><span class="val">${lb.me.val}</span></div>`
+  const meInList = lb.me && lb.entries.some((e) => e.id === lb.me.id);
+  const meRow = !meInList && lb.me
+    ? `<div class="row me"><span class="rank">${lb.me.rank}</span>` +
+      `<span class="name">${lb.me.name}</span><span class="val">${lb.me.val}</span></div>`
     : "";
 
   wrap.innerHTML = rows + meRow;

@@ -165,9 +165,9 @@ serve(async (req: Request) => {
       meRank = entries.findIndex((e) => e.id === meId) + 1;
     }
 
-    let top5 = entries.slice(0, 5);
-    const idsToFetch = new Set(top5.map((e) => e.id));
-    if (meId && meRank > 5) idsToFetch.add(meId);
+    const list = scope === "friends" ? entries : entries.slice(0, 5);
+    const idsToFetch = new Set(list.map((e) => e.id));
+    if (meId && !list.some((e) => e.id === meId)) idsToFetch.add(meId);
 
     let nameMap = new Map<string, string>();
     if (idsToFetch.size > 0) {
@@ -186,21 +186,22 @@ serve(async (req: Request) => {
       nameMap.get(id) ||
       (String(id).startsWith("dev_") ? String(id).slice(4, 10) : "User");
 
-    top5 = top5.map((e) => ({ ...e, name: resolveName(e.id) }));
+    const namedList = list.map((e) => ({
+      ...e,
+      name: e.id === meId ? "You" : resolveName(e.id),
+    }));
 
-    const meRow =
-      meId && meRank > 5
-        ? { rank: meRank, id: meId, name: resolveName(meId), val: entries[meRank - 1].val }
-        : meId
-        ? {
-            rank: meRank,
-            id: meId,
-            name: "You",
-            val: top5.find((e) => e.id === meId)?.val ?? 0,
-          }
-        : null;
+    const meRow = meId
+      ? {
+          rank: meRank,
+          id: meId,
+          name:
+            namedList.find((e) => e.id === meId)?.name || resolveName(meId),
+          val: entries[meRank - 1]?.val ?? 0,
+        }
+      : null;
 
-    return json({ entries: top5, me: meRow });
+    return json({ entries: namedList, me: meRow });
   } catch (e) {
     return err("unhandled", 500, String(e));
   }
