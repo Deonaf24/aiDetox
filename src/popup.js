@@ -497,7 +497,7 @@ function renderRanklist(containerId, lb) {
   const rows = lb.entries.map((e, i) => `
     <div class="row ${lb.me && lb.me.id === e.id ? "me" : ""}">
       <span class="rank">${i + 1}</span>
-      <span class="name">${escapeHtml(e.name)}</span>
+      <span class="name">${escapeHtml(e.name || "Unnamed")}</span>
       <span class="val">${e.val}</span>
     </div>
   `).join("");
@@ -505,7 +505,7 @@ function renderRanklist(containerId, lb) {
   const meInList = lb.me && lb.entries.some((e) => e.id === lb.me.id);
   const meRow = !meInList && lb.me
     ? `<div class="row me"><span class="rank">${lb.me.rank}</span>` +
-      `<span class="name">${lb.me.name}</span><span class="val">${lb.me.val}</span></div>`
+      `<span class="name">${lb.me.name || "Unnamed"}</span><span class="val">${lb.me.val}</span></div>`
     : "";
 
   wrap.innerHTML = rows + meRow;
