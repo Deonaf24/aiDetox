@@ -134,30 +134,40 @@ serve(async (req: Request) => {
       }))
       .sort((a: any, b: any) => b.val - a.val);
 
-    const nameMap = new Map<string, string>();
-
     if (scope === "friends" && friendIds) {
       entries = entries.filter((e) => friendIds!.has(e.id));
 
       const existing = new Set(entries.map((e) => e.id));
       const missing = [...friendIds].filter((id) => !existing.has(id));
 
-      if (missing.length > 0) {
-        const { data: profileRows } = await supabase
-          .from("profiles")
-          .select("id, username, display_name")
-          .in("id", missing);
-
-        for (const p of profileRows ?? []) {
-          nameMap.set(String(p.id), p.username || p.display_name || "");
-        }
-
-        for (const id of missing) {
-          entries.push({ id, val: 0 });
-        }
+      for (const id of missing) {
+        entries.push({ id, val: 0 });
       }
 
       entries.sort((a, b) => b.val - a.val);
+    }
+
+    const allIds = new Set(entries.map((e) => e.id));
+    if (meId) allIds.add(meId);
+
+    const nameMap = new Map<string, string>();
+    if (allIds.size > 0) {
+      const { data: profiles, error: profilesErr } = await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .in("id", Array.from(allIds));
+      if (profilesErr) return err("profiles_query_failed", 500, profilesErr.message);
+
+      for (const row of profiles ?? []) {
+        nameMap.set(
+          String(row.id),
+          row.username || row.display_name || "Unnamed",
+        );
+      }
+
+      for (const id of allIds) {
+        if (!nameMap.has(id)) nameMap.set(id, "Unnamed");
+      }
     }
 
     let meRank = meId ? entries.findIndex((e) => e.id === meId) + 1 : 0;
@@ -172,24 +182,9 @@ serve(async (req: Request) => {
     }
 
     const list = scope === "friends" ? entries : entries.slice(0, 5);
-    const idsToFetch = new Set(list.map((e) => e.id));
-    if (meId && !list.some((e) => e.id === meId)) idsToFetch.add(meId);
-
-    if (idsToFetch.size > 0) {
-      const { data: profiles, error: profilesErr } = await supabase
-        .from("profiles")
-        .select("id, username, display_name")
-        .in("id", Array.from(idsToFetch));
-      if (profilesErr) return err("profiles_query_failed", 500, profilesErr.message);
-
-      for (const row of profiles ?? []) {
-        nameMap.set(row.id, row.username || row.display_name || "");
-      }
-    }
 
     const resolveName = (id: string) => {
-      const known = nameMap.get(id);
-      if (known) return known;
+      if (nameMap.has(id)) return nameMap.get(id)!;
       const clean = String(id).startsWith("dev_") ? String(id).slice(4) : String(id);
       return clean.slice(0, 10);
     };
@@ -203,8 +198,7 @@ serve(async (req: Request) => {
       ? {
           rank: meRank,
           id: meId,
-          name:
-            namedList.find((e) => e.id === meId)?.name || resolveName(meId),
+          name: resolveName(meId),
           val: entries[meRank - 1]?.val ?? 0,
         }
       : null;
