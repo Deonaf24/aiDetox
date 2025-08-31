@@ -1,11 +1,13 @@
 // background.js
 
-import { supabase, registerDevice, logEvent } from "./supabaseClient.js";
+import { supabase, registerDevice, SUPABASE_URL } from "./supabaseClient.js";
 import { getStoredSession, clearStoredSession } from "./sessionStorage.js";
 
 const LOG_KEY = 'aidetox_log';
 const MAX_LOG = 1000;
 const DEVICE_KEY = 'aidetox_device_id';
+const PENDING_KEY = 'aidetox_pending_log';
+const FN_INGEST = `${SUPABASE_URL}/functions/v1/ingest`;
 
 // --- Helpers ---
 async function getDeviceId() {
@@ -22,28 +24,81 @@ async function getDeviceId() {
   });
 }
 
-// Clear any stored session when the extension is installed, started, or unloaded.
-chrome.runtime.onInstalled.addListener(() => { clearStoredSession(); });
-chrome.runtime.onStartup.addListener(() => { clearStoredSession(); });
-if (chrome.runtime.onSuspend) {
-  chrome.runtime.onSuspend.addListener(() => { clearStoredSession(); });
+async function queueEvent(evt) {
+  const { [PENDING_KEY]: q = [] } = await chrome.storage.local.get(PENDING_KEY);
+  q.push(evt);
+  await chrome.storage.local.set({ [PENDING_KEY]: q });
 }
+
+async function flushQueuedEvents(session) {
+  const { [PENDING_KEY]: q = [] } = await chrome.storage.local.get(PENDING_KEY);
+  if (!q.length) return;
+  const remaining = [];
+  for (const e of q) {
+    try {
+      const res = await fetch(FN_INGEST, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(e),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('Supabase log failed:', res.status, text);
+        remaining.push(e);
+      }
+    } catch (err) {
+      console.error('Supabase log failed:', err);
+      remaining.push(e);
+    }
+  }
+  if (remaining.length) {
+    await chrome.storage.local.set({ [PENDING_KEY]: remaining });
+  } else {
+    await chrome.storage.local.remove(PENDING_KEY);
+  }
+}
+
+// Clear any stored session when the extension is installed, started, or unloaded.
+chrome.runtime.onInstalled?.addListener(() => { clearStoredSession(); });
+chrome.runtime.onStartup?.addListener(() => { clearStoredSession(); });
+chrome.runtime.onSuspend?.addListener(() => { clearStoredSession(); });
 
 // --- Supabase logging ---
 async function logEventToSupabase(evt) {
+  const session = await getStoredSession();
+  const device_id = await getDeviceId();
+  const payload = { device_id, profile_id: session?.user?.id || null, ...evt };
   try {
-    const session = await getStoredSession();
-    if (session?.access_token && session?.refresh_token) {
-      await supabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-      });
+    if (!session?.access_token || !session?.refresh_token) {
+      await queueEvent(payload);
+      chrome.runtime.sendMessage?.({ type: 'AIDETOX_LOGIN_REQUIRED' });
+      return;
     }
-    const device_id = await getDeviceId();
+    await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
     await registerDevice(device_id);
-    await logEvent({ device_id, profile_id: session?.user?.id || null, ...evt });
+    await flushQueuedEvents(session);
+    const res = await fetch(FN_INGEST, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Supabase log failed:', res.status, text);
+      await queueEvent(payload);
+    }
   } catch (err) {
-    console.warn("Supabase log failed:", err);
+    console.error('Supabase log failed:', err);
+    await queueEvent(payload);
   }
 }
 
