@@ -130,6 +130,8 @@ serve(async (req: Request) => {
       }))
       .sort((a: any, b: any) => b.val - a.val);
 
+    const nameMap = new Map<string, string>();
+
     if (scope === "friends" && friendIds) {
       entries = entries.filter((e) => friendIds!.has(e.id));
 
@@ -139,19 +141,15 @@ serve(async (req: Request) => {
       if (missing.length > 0) {
         const { data: profileRows } = await supabase
           .from("profiles")
-          .select("id, display_name")
+          .select("id, username, display_name")
           .in("id", missing);
 
-        const nameMap = new Map(
-          (profileRows ?? []).map((p: any) => [String(p.id), String(p.display_name)])
-        );
+        for (const p of profileRows ?? []) {
+          nameMap.set(String(p.id), p.username || p.display_name || "");
+        }
 
         for (const id of missing) {
-          entries.push({
-            id,
-            name: id === meId ? "You" : nameMap.get(id) || "User",
-            val: 0,
-          });
+          entries.push({ id, val: 0 });
         }
       }
 
@@ -169,36 +167,35 @@ serve(async (req: Request) => {
     const idsToFetch = new Set(top5.map((e) => e.id));
     if (meId && meRank > 5) idsToFetch.add(meId);
 
-    let nameMap = new Map<string, string>();
     if (idsToFetch.size > 0) {
       const { data: profiles, error: profilesErr } = await supabase
         .from("profiles")
-        .select("id, display_name")
+        .select("id, username, display_name")
         .in("id", Array.from(idsToFetch));
       if (profilesErr) return err("profiles_query_failed", 500, profilesErr.message);
 
       for (const row of profiles ?? []) {
-        nameMap.set(row.id, row.display_name || "");
+        nameMap.set(row.id, row.username || row.display_name || "");
       }
     }
 
-    const resolveName = (id: string) =>
-      nameMap.get(id) ||
-      (String(id).startsWith("dev_") ? String(id).slice(4, 10) : "User");
+    const resolveName = (id: string) => {
+      const known = nameMap.get(id);
+      if (known) return known;
+      const clean = String(id).startsWith("dev_") ? String(id).slice(4) : String(id);
+      return clean.slice(0, 10);
+    };
 
     top5 = top5.map((e) => ({ ...e, name: resolveName(e.id) }));
 
-    const meRow =
-      meId && meRank > 5
-        ? { rank: meRank, id: meId, name: resolveName(meId), val: entries[meRank - 1].val }
-        : meId
-        ? {
-            rank: meRank,
-            id: meId,
-            name: "You",
-            val: top5.find((e) => e.id === meId)?.val ?? 0,
-          }
-        : null;
+    const meRow = meId
+      ? {
+          rank: meRank,
+          id: meId,
+          name: resolveName(meId),
+          val: entries[meRank - 1]?.val ?? 0,
+        }
+      : null;
 
     return json({ entries: top5, me: meRow });
   } catch (e) {
