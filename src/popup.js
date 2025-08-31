@@ -140,7 +140,18 @@ async function renderAuthState() {
     if (error) throw error;
 
     if (session?.user) {
-      status.textContent = `Logged in as ${session.user.email}`;
+      let name = session.user.email;
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        if (profile?.username) name = profile.username;
+      } catch (e) {
+        console.error("Profile fetch failed:", e);
+      }
+      status.textContent = `Logged in as ${name}`;
       hide(btnSignup); hide(btnLogin); show(btnLogout);
       hide(formSignup); hide(formLogin);
       // Store session so background script can authenticate
@@ -160,23 +171,13 @@ async function renderAuthState() {
 // Ensure a profile exists for the given auth user
 async function ensureProfile(user) {
   if (!user) return;
-  const { data: existing, error } = await supabase
+  const display_name = user.user_metadata?.full_name || null;
+  const username = user.user_metadata?.username || null;
+  const { error } = await supabase
     .from("profiles")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
+    .upsert({ id: user.id, display_name, username });
   if (error) {
-    console.error("Profile lookup failed:", error);
-    return;
-  }
-  if (!existing) {
-    const display_name = user.user_metadata?.full_name || null;
-    const { error: insertErr } = await supabase
-      .from("profiles")
-      .insert({ id: user.id, display_name });
-    if (insertErr) {
-      console.error("Profile creation failed:", insertErr.message);
-    }
+    console.error("Profile upsert failed:", error.message);
   }
 }
 
@@ -205,20 +206,26 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
   msg.textContent = "";
 
   const email    = $("#su-email").value.trim();
+  const username = $("#su-username").value.trim();
   const password = $("#su-password").value;
 
-  if (!email || !password) {
+  if (!email || !password || !username) {
     msg.textContent = "Please fill all fields.";
     return;
   }
 
-  const { error: signUpErr } = await supabase.auth.signUp({
+  const { data, error: signUpErr } = await supabase.auth.signUp({
     email,
     password,
+    options: { data: { username } }
   });
   if (signUpErr) {
     msg.textContent = `Sign up failed: ${signUpErr.message}`;
     return;
+  }
+
+  if (data?.user) {
+    await ensureProfile(data.user);
   }
 
   msg.textContent = "Account created! Check your email if verification is required.";

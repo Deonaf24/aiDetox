@@ -6,3 +6,6 @@ create table friend_requests (
   created_at timestamptz default timezone('utc', now()),
   primary key (sender, receiver)
 );
+
+-- Add username column to profiles
+alter table profiles add column username text unique;
