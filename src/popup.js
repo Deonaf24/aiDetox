@@ -512,9 +512,11 @@ function renderRanklist(containerId, lb) {
 }
 
 async function renderLeaderboards() {
-  const lb1 = await getLeaderboard("noai",    LB_SCOPE);
-  const lb2 = await getLeaderboard("novisit", LB_SCOPE);
-  const lb3 = await getLeaderboard("saves",   LB_SCOPE);
+  const [lb1, lb2, lb3] = await Promise.all([
+    getLeaderboard("noai", LB_SCOPE),
+    getLeaderboard("novisit", LB_SCOPE),
+    getLeaderboard("saves", LB_SCOPE),
+  ]);
   renderRanklist("lb-noai-list", lb1);
   renderRanklist("lb-novisit-list", lb2);
   renderRanklist("lb-saves-list", lb3);
