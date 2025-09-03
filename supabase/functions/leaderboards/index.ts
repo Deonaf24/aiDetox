@@ -129,9 +129,10 @@ serve(async (req: Request) => {
     // Shape + rank (names are resolved later)
     let entries = (data ?? [])
       .map((r: any) => ({
-        id: String(r.identity),
+        id: r.identity ? String(r.identity) : "",
         val: Number(r.value) || 0,
       }))
+      .filter((e: any) => e.id)
       .sort((a: any, b: any) => b.val - a.val);
 
     if (scope === "friends" && friendIds) {

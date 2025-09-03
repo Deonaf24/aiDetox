@@ -104,6 +104,7 @@ CREATE OR REPLACE FUNCTION "public"."lb_noassist_streak"("p_since" timestamp wit
     )::bigint as value
   from public.events e
   where at >= p_since
+    and e.profile_id is not null
   group by e.profile_id
   order by value desc
   limit 100;
@@ -123,6 +124,7 @@ CREATE OR REPLACE FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with
          )::bigint AS value
   FROM public.events
   WHERE at >= p_since
+    AND profile_id IS NOT NULL
   GROUP BY profile_id
   ORDER BY value DESC
   LIMIT 100;
