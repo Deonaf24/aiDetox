@@ -217,17 +217,6 @@ UNION
 ALTER VIEW "public"."friend_ids" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."friend_requests" (
-    "requester" "uuid" NOT NULL,
-    "requestee" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "friend_requests_no_self" CHECK (("requester" <> "requestee"))
-);
-
-
-ALTER TABLE "public"."friend_requests" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
@@ -249,11 +238,6 @@ ALTER TABLE ONLY "public"."devices"
 
 ALTER TABLE ONLY "public"."events"
     ADD CONSTRAINT "events_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."friend_requests"
-    ADD CONSTRAINT "friend_requests_pkey" PRIMARY KEY ("requester", "requestee");
 
 
 
@@ -287,16 +271,6 @@ ALTER TABLE ONLY "public"."events"
 
 ALTER TABLE ONLY "public"."events"
     ADD CONSTRAINT "events_profile_id_fkey" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE SET NULL;
-
-
-
-ALTER TABLE ONLY "public"."friend_requests"
-    ADD CONSTRAINT "friend_requests_requestee_fkey" FOREIGN KEY ("requestee") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."friend_requests"
-    ADD CONSTRAINT "friend_requests_requester_fkey" FOREIGN KEY ("requester") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -337,33 +311,10 @@ CREATE POLICY "events_select_all" ON "public"."events" FOR SELECT USING (true);
 
 
 
-ALTER TABLE "public"."friend_requests" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "friend_requests_delete_own" ON "public"."friend_requests" FOR DELETE TO "authenticated" USING ((("auth"."uid"() = "requester") OR ("auth"."uid"() = "requestee")));
-
-
-
-CREATE POLICY "friend_requests_insert_own" ON "public"."friend_requests" FOR INSERT TO "authenticated" WITH CHECK (("requester" = "auth"."uid"()));
-
-
-
-CREATE POLICY "friend_requests_select_own" ON "public"."friend_requests" FOR SELECT TO "authenticated" USING ((("auth"."uid"() = "requester") OR ("auth"."uid"() = "requestee")));
-
-
-
 ALTER TABLE "public"."friends" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "friends_delete" ON "public"."friends" FOR DELETE TO "authenticated" USING ((("auth"."uid"() = "owner") OR ("auth"."uid"() = "friend")));
-
-
-
-CREATE POLICY "friends_insert" ON "public"."friends" FOR INSERT TO "authenticated" WITH CHECK ((("auth"."uid"() = "owner") OR ("auth"."uid"() = "friend")));
-
-
-
-CREATE POLICY "friends_select" ON "public"."friends" FOR SELECT TO "authenticated" USING ((("auth"."uid"() = "owner") OR ("auth"."uid"() = "friend")));
+CREATE POLICY "friends_rw_own" ON "public"."friends" TO "authenticated" USING (("owner" = "auth"."uid"())) WITH CHECK (("owner" = "auth"."uid"()));
 
 
 
@@ -618,12 +569,6 @@ GRANT ALL ON TABLE "public"."friends" TO "service_role";
 GRANT ALL ON TABLE "public"."friend_ids" TO "anon";
 GRANT ALL ON TABLE "public"."friend_ids" TO "authenticated";
 GRANT ALL ON TABLE "public"."friend_ids" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."friend_requests" TO "anon";
-GRANT ALL ON TABLE "public"."friend_requests" TO "authenticated";
-GRANT ALL ON TABLE "public"."friend_requests" TO "service_role";
 
 
 
