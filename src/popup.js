@@ -175,7 +175,6 @@ async function ensureProfile(user) {
     .from("profiles")
     .upsert({
       id: user.id,
-      display_name: user.user_metadata?.full_name || null,
       username: user.user_metadata?.username || null,
     });
   if (error) {

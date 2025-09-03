@@ -154,14 +154,14 @@ serve(async (req: Request) => {
     if (allIds.size > 0) {
       const { data: profiles, error: profilesErr } = await supabase
         .from("profiles")
-        .select("id, username, display_name")
+        .select("id, username")
         .in("id", Array.from(allIds));
       if (profilesErr) return err("profiles_query_failed", 500, profilesErr.message);
 
       for (const row of profiles ?? []) {
         nameMap.set(
           String(row.id),
-          row.username || row.display_name || "Unnamed",
+          row.username || "Unnamed",
         );
       }
 

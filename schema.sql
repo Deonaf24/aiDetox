@@ -219,7 +219,6 @@ ALTER VIEW "public"."friend_ids" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
-    "display_name" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "username" "text"
 );
