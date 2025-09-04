@@ -26,6 +26,9 @@ function escapeHtml(str = "") {
 // Keep track of leaderboard scope toggle
 let LB_SCOPE = "global"; // "global" | "friends"
 
+// Daily usage goal for ring progress
+const DAILY_GOAL = 10;
+
 // Settings keys
 const USES_BEFORE_PROMPT_KEY = "aidetox_uses_before_prompt";
 const LIMIT_PERIOD_KEY = "aidetox_limit_period";
@@ -311,6 +314,82 @@ function updateStats(log = []) {
   if (closeEl) closeEl.textContent = String(close);
 }
 
+function progressColor(p) {
+  p = Math.min(Math.max(p, 0), 1);
+  let h;
+  if (p <= 0.5) h = 120 - (p / 0.5) * 60; // 120 -> 60
+  else h = 60 - ((p - 0.5) / 0.5) * 60;   // 60 -> 0
+  return `hsl(${h},95%,50%)`;
+}
+
+function renderDailyUsageRing(currentUses, dailyGoal = DAILY_GOAL, size = 120, strokeWidth = 8) {
+  const wrap = document.getElementById("daily-ring");
+  if (!wrap) return;
+
+  if (dailyGoal <= 0) dailyGoal = 1;
+  const progress = Math.min(Math.max(currentUses / dailyGoal, 0), 1);
+
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  let svg = wrap.querySelector("svg");
+  let arc;
+  if (!svg) {
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", size);
+    svg.setAttribute("height", size);
+
+    const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    track.setAttribute("cx", size / 2);
+    track.setAttribute("cy", size / 2);
+    track.setAttribute("r", radius);
+    track.setAttribute("stroke", "#000");
+    track.setAttribute("stroke-opacity", "0.1");
+    track.setAttribute("stroke-width", strokeWidth);
+    track.setAttribute("fill", "none");
+
+    arc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    arc.classList.add("arc");
+    arc.setAttribute("cx", size / 2);
+    arc.setAttribute("cy", size / 2);
+    arc.setAttribute("r", radius);
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke-width", strokeWidth);
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("transform", `rotate(-90 ${size / 2} ${size / 2})`);
+    arc.setAttribute("stroke-dasharray", String(circumference));
+    arc.setAttribute("stroke-dashoffset", String(circumference));
+    arc.style.transition = "stroke-dashoffset .5s ease, stroke .5s ease";
+
+    svg.appendChild(track);
+    svg.appendChild(arc);
+    wrap.appendChild(svg);
+  } else {
+    arc = svg.querySelector(".arc");
+  }
+  days.sort((a,b) => a - b);
+  let longest = 0;
+  for (let i = 1; i < days.length; i++) {
+    const gap = Math.floor((days[i] - days[i-1]) / msDay) - 1;
+    if (gap > longest) longest = gap;
+  }
+  if (days.length) {
+    const gap = Math.floor((todayStart - days[days.length-1]) / msDay) - 1;
+    if (gap > longest) longest = gap;
+  }
+  return { today: dayCount, week: weekCount, month: monthCount, longest: Math.max(longest,0) };
+}
+
+  const offset = circumference * (1 - progress);
+  arc.setAttribute("stroke-dashoffset", String(offset));
+  arc.setAttribute("stroke", progressColor(progress));
+
+  const label = `Used ${currentUses} of ${dailyGoal} today (${Math.round(progress * 100)}%)`;
+  wrap.setAttribute("aria-label", label);
+
+  const numEl = document.getElementById("uses-today");
+  if (numEl) numEl.textContent = String(currentUses);
+}
 
 function calcUsageStats(log = []) {
   const msDay = 24 * 60 * 60 * 1000;
@@ -345,11 +424,10 @@ function calcUsageStats(log = []) {
 
 function renderActivitySummary(log = []) {
   const { today, week, month, longest } = calcUsageStats(log);
-  const todayEl = document.getElementById("uses-today");
+  renderDailyUsageRing(today, DAILY_GOAL);
   const weekEl = document.getElementById("uses-week");
   const monthEl = document.getElementById("uses-month");
   const streakEl = document.getElementById("longest-streak");
-  if (todayEl) todayEl.textContent = String(today);
   if (weekEl) weekEl.textContent = String(week);
   if (monthEl) monthEl.textContent = String(month);
   if (streakEl) streakEl.textContent = String(longest);
