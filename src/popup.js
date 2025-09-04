@@ -243,8 +243,9 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
   if (data?.user) {
     await ensureProfile(data.user);
   }
-
-  msg.textContent = "Account created! Check your email if verification is required.";
+  // Notify the user that a confirmation email has been sent
+  msg.textContent = "";
+  alert("Confirmation email sent. Please check your inbox.");
   await renderAuthState();
 });
 
@@ -278,7 +279,13 @@ $("#form-login")?.addEventListener("submit", async (e) => {
 // Log out
 // -------------------------
 $("#btn-logout")?.addEventListener("click", async () => {
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Sign out failed:", error.message);
+    return;
+  }
+  // Clear the stored session so the UI updates immediately
+  storeSession(null);
   await renderAuthState();
 });
 
