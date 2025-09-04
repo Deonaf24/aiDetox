@@ -23,7 +23,6 @@
 
     <nav class="tabs">
       <button class="tab is-active" data-tab="activity">Activity</button>
-      <button class="tab" data-tab="leaderboards">Leaderboards</button>
       <button class="tab" data-tab="friends">Friends</button>
       <button class="tab" data-tab="settings">Settings</button>
     </nav>
@@ -45,32 +44,20 @@
       </div>
     </section>
 
-    <!-- Leaderboards -->
-    <section id="tab-leaderboards" class="hidden">
-      <div class="lb-controls">
-        <div class="seg">
-          <button class="seg-btn seg-scope is-active" data-scope="global">Global</button>
-          <button class="seg-btn seg-scope" data-scope="friends">Friends</button>
-        </div>
-        <div class="muted small" id="lb-note">Showing mock data until you connect.</div>
-      </div>
-
-      <div class="boards">
-        <!-- No-Assist Streak -->
-        <div class="board-card">
-          <div class="board-head">
-            <div class="board-title">No-Assist Streak</div>
-            <div class="board-sub">Didn't visit AI sites</div>
+    <!-- Friends -->
+    <section id="tab-friends" class="hidden">
+      <div class="friends">
+        <div class="lb-controls">
+          <div class="seg">
+            <button class="seg-btn seg-scope is-active" data-scope="global">Global</button>
+            <button class="seg-btn seg-scope" data-scope="friends">Friends</button>
           </div>
-          <div class="board-body">
-            <div id="lb-noai-list" class="ranklist"></div>
-          </div>
+          <div class="muted small" id="lb-note">Showing mock data until you connect.</div>
         </div>
 
-        <!-- Off-Grid Streak -->
         <div class="board-card">
           <div class="board-head">
-            <div class="board-title">Off-Grid Streak</div>
+            <div class="board-title">Days without AI</div>
             <div class="board-sub">Didn’t open AI sites</div>
           </div>
           <div class="board-body">
@@ -78,22 +65,6 @@
           </div>
         </div>
 
-        <!-- Detox Saves (new metric) -->
-        <div class="board-card">
-          <div class="board-head">
-            <div class="board-title">Detox Saves</div>
-            <div class="board-sub">Clicked “No” on the prompt</div>
-          </div>
-          <div class="board-body">
-            <div id="lb-saves-list" class="ranklist"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Friends -->
-    <section id="tab-friends" class="hidden">
-      <div class="friends">
         <div class="friend-card">
           <div class="friend-title">Add Friend</div>
           <div class="friend-row">
