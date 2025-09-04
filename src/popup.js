@@ -246,8 +246,9 @@ $("#form-signup")?.addEventListener("submit", async (e) => {
   if (data?.user) {
     await ensureProfile(data.user);
   }
-
-  msg.textContent = "Account created! Check your email if verification is required.";
+  // Notify the user that a confirmation email has been sent
+  msg.textContent = "";
+  alert("Confirmation email sent. Please check your inbox.");
   await renderAuthState();
 });
 
@@ -281,7 +282,13 @@ $("#form-login")?.addEventListener("submit", async (e) => {
 // Log out
 // -------------------------
 $("#btn-logout")?.addEventListener("click", async () => {
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Sign out failed:", error.message);
+    return;
+  }
+  // Clear the stored session so the UI updates immediately
+  storeSession(null);
   await renderAuthState();
 });
 
@@ -360,6 +367,18 @@ function renderDailyUsageRing(currentUses, dailyGoal = DAILY_GOAL, size = 120, s
   } else {
     arc = svg.querySelector(".arc");
   }
+  days.sort((a,b) => a - b);
+  let longest = 0;
+  for (let i = 1; i < days.length; i++) {
+    const gap = Math.floor((days[i] - days[i-1]) / msDay) - 1;
+    if (gap > longest) longest = gap;
+  }
+  if (days.length) {
+    const gap = Math.floor((todayStart - days[days.length-1]) / msDay) - 1;
+    if (gap > longest) longest = gap;
+  }
+  return { today: dayCount, week: weekCount, month: monthCount, longest: Math.max(longest,0) };
+}
 
   const offset = circumference * (1 - progress);
   arc.setAttribute("stroke-dashoffset", String(offset));
