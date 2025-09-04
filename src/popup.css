@@ -25,35 +25,23 @@
     background:linear-gradient(#f9f9f9, #e0e0e0); cursor:pointer; font-weight:600; color:var(--text); }
   .tab.is-active{ background:linear-gradient(#388e3c, #2e7d32); color:#fff; border-color:#2e7d32; }
   
-  /* Activity controls */
-  .controls{ display:grid; grid-template-columns:1fr; gap:8px; padding:12px; }
-  .seg{ display:inline-flex; border:1px solid var(--border); border-radius:4px; overflow:hidden; background:var(--card); }
-  .seg-btn{ padding:7px 10px; border:0; background:transparent; cursor:pointer; font-weight:600; color:var(--text); }
-  .seg-btn + .seg-btn{ border-left:1px solid var(--border) } .seg-btn.is-active{ background:linear-gradient(#388e3c, #2e7d32); color:#fff }
-  .search{ width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:#fff; color:#111; caret-color:#111; }
-  .search::placeholder{ color:#9ca3af } .search:focus{ outline:none; border-color:#9ca3af; box-shadow:0 0 0 3px rgba(156,163,175,.25) }
-  .actions{ display:flex; gap:8px }
-  .btn{ padding:7px 10px; border-radius:4px; border:1px solid var(--border);
-    background:linear-gradient(#fefefe,#dedede); cursor:pointer; font-weight:600; }
-  .btn:hover{ filter:brightness(.97) }
-  .btn-secondary{ background:linear-gradient(#f9f9f9,#e2e2e2); }
-  .btn-danger{ background:linear-gradient(#fceaea,#f9bebe); border-color:#e99; color:var(--danger) }
-  
-  /* Activity cards */
-  .list{ padding:12px; max-height:420px; overflow:auto; }
-  .group{ margin-bottom:12px; } .group h3{ margin:0 0 8px; font-size:12px; color:var(--muted); font-weight:600; }
-  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,.2); display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; }
-  .card + .card{ margin-top:8px } .card .bar{ width:4px; height:100%; border-radius:8px; background:#ddd; }
-  .card.proceed .bar{ background:var(--proceed) } .card.close .bar{ background:var(--close) }
-  .meta{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; color:var(--muted); font-size:12px; }
-  .meta .dot{ width:4px; height:4px; border-radius:50%; background:#d1d5db }
-  .badge{ display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border:1px solid var(--border); border-radius:999px; background:#f8fafc; color:#374151; }
-  .badge img{ width:14px; height:14px; border-radius:4px }
-  .title{ font-weight:700; margin:2px 0 6px; }
-  .reason{ color:#374151; white-space:pre-wrap; margin:0; }
-  .reason.collapsed{ display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-  .card-actions{ display:flex; gap:6px } .link{ font-size:12px; color:#2563eb; text-decoration:none; } .link:hover{ text-decoration:underline }
+    /* Activity summary */
+    .activity-summary{ text-align:center; padding:40px 0; }
+    .today-count{ font-size:72px; font-weight:700; margin-bottom:8px; }
+    .activity-stats{ display:grid; gap:4px; font-size:14px; color:var(--muted); }
+
+    .seg{ display:inline-flex; border:1px solid var(--border); border-radius:4px; overflow:hidden; background:var(--card); }
+    .seg-btn{ padding:7px 10px; border:0; background:transparent; cursor:pointer; font-weight:600; color:var(--text); }
+    .seg-btn + .seg-btn{ border-left:1px solid var(--border) }
+    .seg-btn.is-active{ background:linear-gradient(#388e3c, #2e7d32); color:#fff }
+
+    /* Buttons */
+    .btn{ padding:7px 10px; border-radius:4px; border:1px solid var(--border);
+      background:linear-gradient(#fefefe,#dedede); cursor:pointer; font-weight:600; }
+    .btn:hover{ filter:brightness(.97) }
+    .btn-secondary{ background:linear-gradient(#f9f9f9,#e2e2e2); }
+    .btn-danger{ background:linear-gradient(#fceaea,#f9bebe); border-color:#e99; color:var(--danger) }
+    .actions{ display:flex; gap:8px }
   
   /* Leaderboards */
   .lb-controls{ padding:12px; display:flex; justify-content:space-between; align-items:center; }
