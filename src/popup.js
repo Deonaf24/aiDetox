@@ -132,7 +132,7 @@ async function restoreSession() {
   }
 }
 
-async function renderAuthState() {
+async function renderAuthState(sessionOverride, loggedOutMessage) {
   const status = $("#auth-status");
   const btnSignup = $("#btn-show-signup");
   const btnLogin  = $("#btn-show-login");
@@ -141,8 +141,12 @@ async function renderAuthState() {
   const formLogin  = $("#form-login");
 
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
+    let session = sessionOverride;
+    if (session === undefined) {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      session = data.session;
+    }
 
     if (session?.user) {
       let username = session.user.user_metadata?.username;
@@ -165,7 +169,7 @@ async function renderAuthState() {
     console.error("Session lookup failed:", err);
   }
 
-  status.textContent = "Not logged in";
+  status.textContent = loggedOutMessage || "Not logged in";
   show(btnSignup); show(btnLogin); hide(btnLogout);
   hide(formSignup); hide(formLogin);
   storeSession(null);
@@ -282,14 +286,16 @@ $("#form-login")?.addEventListener("submit", async (e) => {
 // Log out
 // -------------------------
 $("#btn-logout")?.addEventListener("click", async () => {
+  const status = $("#auth-status");
+  if (status) status.textContent = "Logging out...";
   const { error } = await supabase.auth.signOut();
   if (error) {
     console.error("Sign out failed:", error.message);
     return;
   }
-  // Clear the stored session so the UI updates immediately
+  // Clear the stored session and immediately reflect logged-out state
   storeSession(null);
-  await renderAuthState();
+  await renderAuthState(null, "Logged out");
 });
 
 // -------------------------
@@ -645,12 +651,16 @@ loadSettings();
     }
     if (event === "TOKEN_REFRESHED") {
       storeSession(session);
+      await renderAuthState(session);
+      return;
     } else if (event === "SIGNED_OUT") {
       storeSession(null);
+      await renderAuthState(null, "Logged out");
+      return;
     } else if (event === "SIGNED_IN") {
       storeSession(session);
       await ensureProfile(session?.user);
     }
-    await renderAuthState();
+    await renderAuthState(session);
   });
 })();
