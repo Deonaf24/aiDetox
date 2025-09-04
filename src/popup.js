@@ -27,7 +27,8 @@ function escapeHtml(str = "") {
 let LB_SCOPE = "global"; // "global" | "friends"
 
 // Daily usage goal for ring progress
-const DAILY_GOAL = 10;
+const DEFAULT_DAILY_GOAL = 10;
+let DAILY_GOAL = DEFAULT_DAILY_GOAL;
 
 // Settings keys
 const USES_BEFORE_PROMPT_KEY = "aidetox_uses_before_prompt";
@@ -36,6 +37,7 @@ const ALWAYS_ASK_KEY = "aidetox_always_ask";
 const UNLOCK_DELAY_KEY = "aidetox_unlock_delay";
 const MIN_CHARS_KEY = "aidetox_min_chars";
 const CHECK_REASON_KEY = "aidetox_check_reason";
+const DAILY_GOAL_KEY = "aidetox_daily_goal";
 
 function loadSettings() {
   chrome.storage.local.get([
@@ -45,6 +47,7 @@ function loadSettings() {
     UNLOCK_DELAY_KEY,
     MIN_CHARS_KEY,
     CHECK_REASON_KEY,
+    DAILY_GOAL_KEY,
   ], (res) => {
     const uses = res[USES_BEFORE_PROMPT_KEY] ?? 0;
     const period = res[LIMIT_PERIOD_KEY] || "hour";
@@ -52,6 +55,8 @@ function loadSettings() {
     const unlock = res[UNLOCK_DELAY_KEY] ?? 10;
     const minChars = res[MIN_CHARS_KEY] ?? 10;
     const checkReason = !!res[CHECK_REASON_KEY];
+    const dailyGoal = res[DAILY_GOAL_KEY] ?? DEFAULT_DAILY_GOAL;
+    DAILY_GOAL = dailyGoal;
 
     const usesEl = document.getElementById("set-uses-before");
     const periodEl = document.getElementById("set-limit-period");
@@ -59,6 +64,7 @@ function loadSettings() {
     const unlockEl = document.getElementById("set-unlock");
     const minCharsEl = document.getElementById("set-minchars");
     const checkReasonEl = document.getElementById("set-check-reason");
+    const dailyGoalEl = document.getElementById("set-daily-goal");
 
     if (usesEl) usesEl.value = uses;
     if (periodEl) periodEl.value = period;
@@ -66,6 +72,7 @@ function loadSettings() {
     if (unlockEl) unlockEl.value = unlock;
     if (minCharsEl) minCharsEl.value = minChars;
     if (checkReasonEl) checkReasonEl.checked = checkReason;
+    if (dailyGoalEl) dailyGoalEl.value = dailyGoal;
   });
 }
 
@@ -76,6 +83,7 @@ function saveSettings() {
   const unlockEl = document.getElementById("set-unlock");
   const minCharsEl = document.getElementById("set-minchars");
   const checkReasonEl = document.getElementById("set-check-reason");
+  const dailyGoalEl = document.getElementById("set-daily-goal");
 
   const uses = parseInt(usesEl?.value, 10) || 0;
   const period = periodEl?.value === "day" ? "day" : "hour";
@@ -83,6 +91,7 @@ function saveSettings() {
   const unlock = parseInt(unlockEl?.value, 10) || 0;
   const minChars = parseInt(minCharsEl?.value, 10) || 0;
   const checkReason = !!checkReasonEl?.checked;
+  const dailyGoal = parseInt(dailyGoalEl?.value, 10) || DEFAULT_DAILY_GOAL;
 
   chrome.storage.local.set({
     [USES_BEFORE_PROMPT_KEY]: uses,
@@ -91,6 +100,7 @@ function saveSettings() {
     [UNLOCK_DELAY_KEY]: unlock,
     [MIN_CHARS_KEY]: minChars,
     [CHECK_REASON_KEY]: checkReason,
+    [DAILY_GOAL_KEY]: dailyGoal,
   });
 }
 
@@ -100,6 +110,7 @@ document.getElementById("set-always-ask")?.addEventListener("change", saveSettin
 document.getElementById("set-unlock")?.addEventListener("change", saveSettings);
 document.getElementById("set-minchars")?.addEventListener("change", saveSettings);
 document.getElementById("set-check-reason")?.addEventListener("change", saveSettings);
+document.getElementById("set-daily-goal")?.addEventListener("change", saveSettings);
 
 // -------------------------
 // Device ID (for anon/global leaderboards, etc.)
@@ -429,11 +440,14 @@ function renderActivitySummary(log = []) {
 }
 
 function loadAndRender() {
-  chrome.runtime.sendMessage({ type: "AIDETOX_GET_LOG" }, (res) => {
-    if (!res?.ok) return;
-    const log = res.log || [];
-    updateStats(log);
-    renderActivitySummary(log);
+  chrome.storage.local.get([DAILY_GOAL_KEY], (cfg) => {
+    DAILY_GOAL = parseInt(cfg[DAILY_GOAL_KEY], 10) || DEFAULT_DAILY_GOAL;
+    chrome.runtime.sendMessage({ type: "AIDETOX_GET_LOG" }, (res) => {
+      if (!res?.ok) return;
+      const log = res.log || [];
+      updateStats(log);
+      renderActivitySummary(log);
+    });
   });
 }
 
