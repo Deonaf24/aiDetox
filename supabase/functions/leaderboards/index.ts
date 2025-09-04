@@ -1,7 +1,5 @@
 // supabase/functions/leaderboards/index.ts
-// Leaderboards API -> wraps Postgres RPCs:
-//   - lb_saves
-//   - lb_noassist_streak
+// Leaderboards API -> wraps Postgres RPC:
 //   - lb_offgrid_streak
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -68,8 +66,8 @@ serve(async (req: Request) => {
       return new Response("Method Not Allowed", { status: 405, headers: CORS });
     }
 
-    // Validate metric
-    if (!["noai", "novisit", "saves"].includes(String(metric))) {
+    // Validate metric (only novisit supported)
+    if (String(metric) !== "novisit") {
       return err("invalid_metric", 400, { metric });
     }
 
@@ -112,15 +110,7 @@ serve(async (req: Request) => {
     const since = new Date();
     since.setMonth(since.getMonth() - 6);
 
-    // Map metric -> RPC
-    const rpcName =
-      metric === "saves"
-        ? "lb_saves"
-        : metric === "noai"
-        ? "lb_noassist_streak"
-        : "lb_offgrid_streak";
-
-    const { data, error } = await supabase.rpc(rpcName, {
+    const { data, error } = await supabase.rpc("lb_offgrid_streak", {
       p_since: since.toISOString(),
     });
 
