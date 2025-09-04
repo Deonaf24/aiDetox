@@ -26,12 +26,8 @@
   .tab.is-active{ background:linear-gradient(#388e3c, #2e7d32); color:#fff; border-color:#2e7d32; }
   
     /* Activity summary */
-    .activity-summary{ text-align:center; padding:20px 0; display:flex; flex-direction:column; align-items:center; gap:12px; }
-    .daily-usage{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-    .usage-ring{ position:relative; width:120px; height:120px; }
-    .usage-ring svg{ width:100%; height:100%; }
-    .today-count{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:60px; font-weight:700; }
-    .today-label{ font-size:14px; color:var(--muted); }
+    .activity-summary{ text-align:center; padding:40px 0; }
+    .today-count{ font-size:72px; font-weight:700; margin-bottom:8px; }
     .activity-stats{ display:grid; gap:4px; font-size:14px; color:var(--muted); }
 
     .seg{ display:inline-flex; border:1px solid var(--border); border-radius:4px; overflow:hidden; background:var(--card); }
