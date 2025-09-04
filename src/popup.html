@@ -30,19 +30,19 @@
 
     <!-- Activity -->
     <section id="tab-activity">
-      <section class="controls">
-        <div class="seg">
-          <button class="seg-btn is-active" data-filter="all">All</button>
-          <button class="seg-btn" data-filter="proceed">Proceed</button>
-          <button class="seg-btn" data-filter="close">Closed</button>
+      <div class="activity-summary">
+        <div class="daily-usage">
+          <div id="daily-ring" class="usage-ring">
+            <div id="uses-today" class="today-count">0</div>
+          </div>
+          <div class="today-label">Uses today</div>
         </div>
-        <input id="search" class="search" placeholder="Search reasons, domains…" />
-        <div class="actions">
-          <button id="export" class="btn btn-secondary">Export CSV</button>
-          <button id="clear" class="btn btn-danger">Clear</button>
+        <div class="activity-stats">
+          <div>Uses this week: <span id="uses-week">0</span></div>
+          <div>Uses this month: <span id="uses-month">0</span></div>
+          <div>Longest streak: <span id="longest-streak">0</span> days</div>
         </div>
-      </section>
-      <main id="list" class="list"></main>
+      </div>
     </section>
 
     <!-- Leaderboards -->

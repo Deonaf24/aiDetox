@@ -26,6 +26,9 @@ function escapeHtml(str = "") {
 // Keep track of leaderboard scope toggle
 let LB_SCOPE = "global"; // "global" | "friends"
 
+// Daily usage goal for ring progress
+const DAILY_GOAL = 10;
+
 // Settings keys
 const USES_BEFORE_PROMPT_KEY = "aidetox_uses_before_prompt";
 const LIMIT_PERIOD_KEY = "aidetox_limit_period";
@@ -285,17 +288,6 @@ $("#btn-logout")?.addEventListener("click", async () => {
 // -------------------------
 // Activity Tab
 // -------------------------
-function fmtTable(ts) {
-  try { return new Date(ts).toLocaleString(); } catch { return ""; }
-}
-function fmtISO(ts) {
-  try { return new Date(ts).toISOString(); } catch { return ""; }
-}
-function escapeCsv(v) {
-  if (v == null) return "";
-  const s = String(v).replace(/"/g, '""');
-  return /[",\n]/.test(s) ? `"${s}"` : s;
-}
 
 function updateStats(log = []) {
   const totalEl = document.getElementById("stat-total");
@@ -315,131 +307,121 @@ function updateStats(log = []) {
   if (closeEl) closeEl.textContent = String(close);
 }
 
-function renderTable(log, filter = "all") {
-  const wrap = $("#list");
-  if (!wrap) return;
-
-  const rows = filter === "all" ? log : log.filter(e => e.event === filter);
-
-  wrap.innerHTML = "";
-
-  if (!rows.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = "No entries yet.";
-    wrap.appendChild(empty);
-    return;
-  }
-
-  rows.forEach((e) => {
-    const card = document.createElement("div");
-    card.className = `card ${e.event}`;
-
-    const bar = document.createElement("div");
-    bar.className = "bar";
-    card.appendChild(bar);
-
-    const main = document.createElement("div");
-
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = e.domain || "Unknown domain";
-    main.appendChild(title);
-
-    const reason = document.createElement("p");
-    reason.className = "reason";
-    reason.textContent = e.reason ? e.reason : "—";
-    main.appendChild(reason);
-
-    const meta = document.createElement("div");
-    meta.className = "meta";
-
-    const spanTime = document.createElement("span");
-    spanTime.textContent = fmtTable(e.at);
-    meta.appendChild(spanTime);
-
-    const spanDot = document.createElement("span");
-    spanDot.className = "dot";
-    meta.appendChild(spanDot);
-
-    const spanHost = document.createElement("span");
-    spanHost.className = "muted";
-    spanHost.textContent = e.url ? new URL(e.url).hostname : "";
-    meta.appendChild(spanHost);
-
-    main.appendChild(meta);
-    card.appendChild(main);
-
-    const actions = document.createElement("div");
-    actions.className = "card-actions";
-
-    const link = document.createElement("a");
-    link.className = "link";
-    link.href = e.url || "#";
-    link.target = "_blank";
-    link.textContent = "Open";
-    actions.appendChild(link);
-
-    card.appendChild(actions);
-
-    wrap.appendChild(card);
-  });
+function progressColor(p) {
+  p = Math.min(Math.max(p, 0), 1);
+  let h;
+  if (p <= 0.5) h = 120 - (p / 0.5) * 60; // 120 -> 60
+  else h = 60 - ((p - 0.5) / 0.5) * 60;   // 60 -> 0
+  return `hsl(${h},95%,50%)`;
 }
 
-function loadAndRender(filter = "all") {
+function renderDailyUsageRing(currentUses, dailyGoal = DAILY_GOAL, size = 120, strokeWidth = 8) {
+  const wrap = document.getElementById("daily-ring");
+  if (!wrap) return;
+
+  if (dailyGoal <= 0) dailyGoal = 1;
+  const progress = Math.min(Math.max(currentUses / dailyGoal, 0), 1);
+
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  let svg = wrap.querySelector("svg");
+  let arc;
+  if (!svg) {
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", size);
+    svg.setAttribute("height", size);
+
+    const track = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    track.setAttribute("cx", size / 2);
+    track.setAttribute("cy", size / 2);
+    track.setAttribute("r", radius);
+    track.setAttribute("stroke", "#000");
+    track.setAttribute("stroke-opacity", "0.1");
+    track.setAttribute("stroke-width", strokeWidth);
+    track.setAttribute("fill", "none");
+
+    arc = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    arc.classList.add("arc");
+    arc.setAttribute("cx", size / 2);
+    arc.setAttribute("cy", size / 2);
+    arc.setAttribute("r", radius);
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke-width", strokeWidth);
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("transform", `rotate(-90 ${size / 2} ${size / 2})`);
+    arc.setAttribute("stroke-dasharray", String(circumference));
+    arc.setAttribute("stroke-dashoffset", String(circumference));
+    arc.style.transition = "stroke-dashoffset .5s ease, stroke .5s ease";
+
+    svg.appendChild(track);
+    svg.appendChild(arc);
+    wrap.appendChild(svg);
+  } else {
+    arc = svg.querySelector(".arc");
+  }
+
+  const offset = circumference * (1 - progress);
+  arc.setAttribute("stroke-dashoffset", String(offset));
+  arc.setAttribute("stroke", progressColor(progress));
+
+  const label = `Used ${currentUses} of ${dailyGoal} today (${Math.round(progress * 100)}%)`;
+  wrap.setAttribute("aria-label", label);
+
+  const numEl = document.getElementById("uses-today");
+  if (numEl) numEl.textContent = String(currentUses);
+}
+
+function calcUsageStats(log = []) {
+  const msDay = 24 * 60 * 60 * 1000;
+  const today = new Date();
+  const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const todayStart = startOfDay(today);
+  const weekStart = new Date(todayStart - 6 * msDay);
+  const monthStart = new Date(todayStart - 29 * msDay);
+
+  let dayCount = 0, weekCount = 0, monthCount = 0;
+  const days = [];
+  for (const entry of log) {
+    if (entry.event !== "proceed") continue;
+    const at = new Date(entry.at);
+    if (at >= todayStart) dayCount++;
+    if (at >= weekStart) weekCount++;
+    if (at >= monthStart) monthCount++;
+    days.push(startOfDay(at));
+  }
+  days.sort((a,b) => a - b);
+  let longest = 0;
+  for (let i = 1; i < days.length; i++) {
+    const gap = Math.floor((days[i] - days[i-1]) / msDay) - 1;
+    if (gap > longest) longest = gap;
+  }
+  if (days.length) {
+    const gap = Math.floor((todayStart - days[days.length-1]) / msDay) - 1;
+    if (gap > longest) longest = gap;
+  }
+  return { today: dayCount, week: weekCount, month: monthCount, longest: Math.max(longest,0) };
+}
+
+function renderActivitySummary(log = []) {
+  const { today, week, month, longest } = calcUsageStats(log);
+  renderDailyUsageRing(today, DAILY_GOAL);
+  const weekEl = document.getElementById("uses-week");
+  const monthEl = document.getElementById("uses-month");
+  const streakEl = document.getElementById("longest-streak");
+  if (weekEl) weekEl.textContent = String(week);
+  if (monthEl) monthEl.textContent = String(month);
+  if (streakEl) streakEl.textContent = String(longest);
+}
+
+function loadAndRender() {
   chrome.runtime.sendMessage({ type: "AIDETOX_GET_LOG" }, (res) => {
     if (!res?.ok) return;
     const log = res.log || [];
     updateStats(log);
-    renderTable(log, filter);
+    renderActivitySummary(log);
   });
 }
-
-// Segmented filter buttons
-$$(".seg-btn[data-filter]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    $$(".seg-btn[data-filter]").forEach(b => b.classList.remove("is-active"));
-    btn.classList.add("is-active");
-    loadAndRender(btn.dataset.filter);
-  });
-});
-
-// Export / Clear
-$("#clear")?.addEventListener("click", () => {
-  chrome.runtime.sendMessage({ type: "AIDETOX_CLEAR_LOG" }, () => loadAndRender());
-});
-$("#export")?.addEventListener("click", () => {
-  chrome.runtime.sendMessage({ type: "AIDETOX_GET_LOG" }, async (res) => {
-    if (!res?.ok) return;
-    const rows = res.log || [];
-    const header = ["time","event","domain","url","reason","unlock_delay_ms"];
-    const csv = [
-      header.join(","),
-      ...rows.map(e => [
-        escapeCsv(fmtISO(e.at)),
-        escapeCsv(e.event),
-        escapeCsv(e.domain || ""),
-        escapeCsv(e.url || ""),
-        escapeCsv(e.reason || ""),
-        escapeCsv(e.unlock_delay_ms || "")
-      ].join(","))
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    if (chrome.downloads?.download) {
-      chrome.downloads.download(
-        { url, filename: `aidetox_log_${Date.now()}.csv`, saveAs: true },
-        () => setTimeout(() => URL.revokeObjectURL(url), 5000)
-      );
-    } else {
-      const a = document.createElement("a");
-      a.href = url; a.download = `aidetox_log_${Date.now()}.csv`;
-      document.body.appendChild(a); a.click();
-      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
-    }
-  });
-});
 
 // -------------------------
 // Leaderboards
