@@ -206,14 +206,43 @@ async function ensureProfile(user) {
 
 // Toggle forms
 $("#btn-show-signup")?.addEventListener("click", () => {
+  hide($("#btn-show-signup"));
+  hide($("#btn-show-login"));
   hide($("#form-login"));
   show($("#form-signup"));
   $("#su-email")?.focus();
 });
 $("#btn-show-login")?.addEventListener("click", () => {
+  hide($("#btn-show-signup"));
+  hide($("#btn-show-login"));
   hide($("#form-signup"));
   show($("#form-login"));
   $("#li-email")?.focus();
+});
+
+$("#btn-cancel-signup")?.addEventListener("click", () => {
+  show($("#btn-show-signup"));
+  show($("#btn-show-login"));
+  hide($("#form-signup"));
+  $("#su-msg").textContent = "";
+});
+$("#btn-cancel-login")?.addEventListener("click", () => {
+  show($("#btn-show-signup"));
+  show($("#btn-show-login"));
+  hide($("#form-login"));
+  $("#li-msg").textContent = "";
+});
+$("#link-show-login")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  hide($("#form-signup"));
+  show($("#form-login"));
+  $("#li-email")?.focus();
+});
+$("#link-show-signup")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  hide($("#form-login"));
+  show($("#form-signup"));
+  $("#su-email")?.focus();
 });
 
 // -------------------------
