@@ -575,6 +575,7 @@ async function renderFriendsTab() {
   }
 
   const reqRows = await getFriendRequests(me);
+  const countEl = $("#req-count");
   if (reqRows.length) {
     const ids = reqRows.map(r => r.requester);
     const { data: rProfiles } = await supabase
@@ -585,8 +586,10 @@ async function renderFriendsTab() {
       const name = rProfiles?.find(p => p.id === r.requester)?.username || r.requester;
       return `<li data-id="${r.requester}"><span>${name}</span><span class="actions"><button class="btn btn-secondary btn-sm accept">Accept</button><button class="btn btn-danger btn-sm decline">Decline</button></span></li>`;
     }).join('');
+    if (countEl) { countEl.textContent = reqRows.length; show(countEl); }
   } else {
     reqEl.innerHTML = "<li class='empty'>No friend requests.</li>";
+    if (countEl) hide(countEl);
   }
 }
 
@@ -623,6 +626,22 @@ $("#friend-requests")?.addEventListener("click", async (e) => {
     return;
   }
   await renderFriendsTab();
+});
+
+$("#toggle-add-friend")?.addEventListener("click", () => {
+  const card = $("#add-friend-card");
+  const reqCard = $("#friend-requests-card");
+  if (reqCard) hide(reqCard);
+  card?.classList.toggle("hidden");
+});
+
+$("#toggle-requests")?.addEventListener("click", () => {
+  const card = $("#friend-requests-card");
+  const addCard = $("#add-friend-card");
+  if (addCard) hide(addCard);
+  card?.classList.toggle("hidden");
+  const badge = $("#req-count");
+  if (badge) hide(badge);
 });
 
 // Leaderboard always shows friends; scope toggle removed
