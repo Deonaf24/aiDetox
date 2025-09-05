@@ -452,7 +452,7 @@ function loadAndRender() {
 }
 
 // -------------------------
-// Leaderboards
+// Leaderboard
 // -------------------------
 async function getLeaderboard(metric, scope = LB_SCOPE) {
   const device_id = await getDeviceId();
@@ -464,7 +464,7 @@ async function getLeaderboard(metric, scope = LB_SCOPE) {
   }
 
   const url = new URL(FN_LEADERBOARDS);
-  url.searchParams.set("metric", metric);      // "noai" | "novisit" | "saves"
+  url.searchParams.set("metric", metric);      // "novisit"
   url.searchParams.set("scope", scope);        // "global" | "friends"
   if (device_id) url.searchParams.set("device_id", device_id);
 
@@ -520,18 +520,14 @@ function renderRanklist(containerId, lb) {
   wrap.innerHTML = rows + meRow;
 }
 
-async function renderLeaderboards() {
-  const [lb1, lb2, lb3] = await Promise.all([
-    getLeaderboard("noai", LB_SCOPE),
-    getLeaderboard("novisit", LB_SCOPE),
-    getLeaderboard("saves", LB_SCOPE),
-  ]);
-  renderRanklist("lb-noai-list", lb1);
-  renderRanklist("lb-novisit-list", lb2);
-  renderRanklist("lb-saves-list", lb3);
+async function renderOffGridLeaderboard() {
+  const lb = await getLeaderboard("novisit", LB_SCOPE);
+  renderRanklist("lb-novisit-list", lb);
 }
 
 async function renderFriendsTab() {
+  await renderOffGridLeaderboard();
+
   const listEl = $("#friends-list");
   const reqEl = $("#friend-requests");
   const msgEl = $("#add-friend-msg");
@@ -622,7 +618,7 @@ $$(".seg-scope").forEach(btn => {
     note.textContent = LB_SCOPE === "friends"
       ? "Friends leaderboard requires login."
       : "Showing global data.";
-    await renderLeaderboards();
+    await renderOffGridLeaderboard();
   });
 });
 
@@ -638,8 +634,7 @@ $$(".tab").forEach(tabBtn => {
     const target = "tab-" + tabBtn.dataset.tab;
     document.getElementById(target).classList.remove("hidden");
 
-    if (target === "tab-leaderboards") renderLeaderboards();
-    else if (target === "tab-activity") loadAndRender();
+    if (target === "tab-activity") loadAndRender();
     else if (target === "tab-settings") {
       renderAuthState();
       loadSettings();

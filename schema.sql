@@ -75,45 +75,6 @@ $$;
 ALTER FUNCTION "public"."forbid_username_change"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."lb_noassist_streak"("p_since" timestamp with time zone DEFAULT '1970-01-01 00:00:00+00'::timestamp with time zone) RETURNS TABLE("identity" "uuid", "value" bigint)
-    LANGUAGE "sql" STABLE
-    AS $$
-  select
-    e.profile_id as identity,
-    date_part(
-      'day',
-      now() - coalesce(
-        max(at) filter (
-          where domain = any (
-            array[
-              'chatgpt.com',
-              'chat.openai.com',
-              'claude.ai',
-              'gemini.google.com',
-              'perplexity.ai',
-              'copilot.microsoft.com',
-              'poe.com',
-              'character.ai',
-              'huggingface.co',
-              'openrouter.ai'
-            ]  -- AI domains
-          )
-        ),
-        p_since
-      )
-    )::bigint as value
-  from public.events e
-  where at >= p_since
-    and e.profile_id is not null
-  group by e.profile_id
-  order by value desc
-  limit 100;
-$$;
-
-
-ALTER FUNCTION "public"."lb_noassist_streak"("p_since" timestamp with time zone) OWNER TO "postgres";
-
-
 CREATE OR REPLACE FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with time zone DEFAULT '1970-01-01 00:00:00+00'::timestamp with time zone) RETURNS TABLE("identity" "uuid", "value" bigint)
     LANGUAGE "sql" STABLE
     AS $$
@@ -130,24 +91,7 @@ CREATE OR REPLACE FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with
   LIMIT 100;
 $$;
 
-
 ALTER FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with time zone) OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."lb_saves"("p_since" timestamp with time zone) RETURNS TABLE("identity" "uuid", "value" bigint)
-    LANGUAGE "sql" STABLE
-    AS $$
-  SELECT profile_id AS identity,
-         COUNT(*)::bigint AS value
-  FROM public.events
-  WHERE event = 'close' AND at >= p_since
-  GROUP BY profile_id
-  ORDER BY value DESC
-  LIMIT 100;
-$$;
-
-
-ALTER FUNCTION "public"."lb_saves"("p_since" timestamp with time zone) OWNER TO "postgres";
 
 SET default_tablespace = '';
 
@@ -560,24 +504,9 @@ GRANT ALL ON FUNCTION "public"."forbid_username_change"() TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."lb_noassist_streak"("p_since" timestamp with time zone) TO "anon";
-GRANT ALL ON FUNCTION "public"."lb_noassist_streak"("p_since" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."lb_noassist_streak"("p_since" timestamp with time zone) TO "service_role";
-
-
-
 GRANT ALL ON FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with time zone) TO "anon";
 GRANT ALL ON FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with time zone) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."lb_offgrid_streak"("p_since" timestamp with time zone) TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."lb_saves"("p_since" timestamp with time zone) TO "anon";
-GRANT ALL ON FUNCTION "public"."lb_saves"("p_since" timestamp with time zone) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."lb_saves"("p_since" timestamp with time zone) TO "service_role";
-
-
-
 
 
 
