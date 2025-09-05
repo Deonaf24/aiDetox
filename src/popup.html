@@ -144,19 +144,19 @@
               <span class="slider"></span>
             </label>
             <div>
-              <div class="set-row-title">Always ask (no 30s buffer)</div>
-              <div class="muted small">Prompt every visit.</div>
+              <div class="set-row-title">Always prompt</div>
+              <div class="muted small">Ask on every visit (no 30s delay).</div>
             </div>
           </div>
           <div class="set-row">
-            <div class="set-row-title">Unlock delay</div>
+            <div class="set-row-title">Proceed button delay</div>
             <input type="number" id="set-unlock" class="set-input" min="0" step="1" value="10" />
-            <div class="muted small">Seconds before Proceed unlocks.</div>
+            <div class="muted small">Seconds before "Proceed" becomes available.</div>
           </div>
           <div class="set-row">
             <div class="set-row-title">Minimum reason length</div>
             <input type="number" id="set-minchars" class="set-input" min="0" step="1" value="10" />
-            <div class="muted small">Characters required to proceed.</div>
+            <div class="muted small">Characters required before proceeding.</div>
           </div>
           <div class="set-row">
             <label class="switch">
@@ -164,28 +164,29 @@
               <span class="slider"></span>
             </label>
             <div>
-              <div class="set-row-title">Reason checker (Beta)</div>
-              <div class="muted small">Warn on vague reasons.</div>
+              <div class="set-row-title">Reason quality check</div>
+              <div class="muted small">Warns if your reason is vague.</div>
             </div>
           </div>
           <div class="set-row">
-            <div class="set-row-title">Daily uses goal</div>
+            <div class="set-row-title">Daily usage goal</div>
             <input type="number" id="set-daily-goal" class="set-input" min="1" step="1" value="10" />
-            <div class="muted small">Target uses per day.</div>
+            <div class="muted small">Target number of uses per day.</div>
           </div>
         </div>
 
-        <!-- Unprompted uses setting -->
+        <!-- Prompt frequency setting -->
         <div class="set-card">
-          <div class="set-title">Unprompted uses before prompting</div>
+          <div class="set-title">Prompt frequency</div>
           <div class="set-row">
+            <div class="set-row-title">Allow</div>
             <input type="number" id="set-uses-before" class="set-input" min="0" step="1" value="0" />
             <select id="set-limit-period" class="set-input">
               <option value="hour">per hour</option>
               <option value="day">per day</option>
             </select>
           </div>
-          <div class="muted small">0 prompts every visit. Counter resets per period.</div>
+          <div class="muted small">Set to 0 to prompt on every visit. Counter resets each period.</div>
         </div>
 
         <!-- Data -->
@@ -195,13 +196,13 @@
             <button id="settings-export" class="btn btn-secondary">Export CSV</button>
             <button id="settings-clear" class="btn btn-danger">Clear all</button>
           </div>
-          <div class="muted small">Stored locally (chrome.storage.local)</div>
+          <div class="muted small">Data stored only on this device.</div>
         </div>
       </div>
     </section>
 
 
-    <footer class="foot muted">Stores locally on this device (chrome.storage.local).</footer>
+    <footer class="foot muted">Data stored only on this device.</footer>
     <script src="popup.js"></script>
   </body>
 </html>
