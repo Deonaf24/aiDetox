@@ -5,8 +5,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-type Scope = "global" | "friends";
-
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -49,19 +47,13 @@ serve(async (req: Request) => {
 
     // Accept GET (query params) and POST (JSON body)
     let metric: string | null;
-    let scope: Scope;
-    let meId = "";
 
     if (req.method === "GET") {
       const url = new URL(req.url);
       metric = url.searchParams.get("metric");
-      scope = url.searchParams.get("scope") === "friends" ? "friends" : "global";
-      meId = url.searchParams.get("device_id") || "";
     } else if (req.method === "POST") {
       const body = await req.json().catch(() => ({} as any));
       metric = body.metric ?? null;
-      scope = body.scope === "friends" ? "friends" : "global";
-      meId = body.device_id ?? "";
     } else {
       return new Response("Method Not Allowed", { status: 405, headers: CORS });
     }
@@ -75,35 +67,26 @@ serve(async (req: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    // Parse auth header for optional user context
+    // Require auth user
     const authHeader =
       req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    let authUser: any = null;
-    if (token) {
-      const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
-      if (!userErr && user) {
-        authUser = user;
-        meId = user.id; // prefer auth user id over device_id
-      }
-    }
+    if (!token) return err("login_required", 401);
+    const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !user) return err("login_required", 401);
+    const meId = user.id;
 
-    // Collect friends if needed
-    let friendIds: Set<string> | null = null;
-    if (scope === "friends") {
-      if (!authUser) return err("login_required", 401);
+    // Collect friends
+    const { data: friendRows, error: friendsErr } = await supabase
+      .from("friends")
+      .select("owner, friend")
+      .or(`owner.eq.${meId},friend.eq.${meId}`);
 
-      const { data: friendRows, error: friendsErr } = await supabase
-        .from("friends")
-        .select("owner, friend")
-        .or(`owner.eq.${meId},friend.eq.${meId}`);
+    if (friendsErr) return err("friends_query_failed", 500, friendsErr.message);
 
-      if (friendsErr) return err("friends_query_failed", 500, friendsErr.message);
-
-      friendIds = new Set([meId]);
-      for (const row of friendRows ?? []) {
-        friendIds.add(row.owner === meId ? row.friend : row.owner);
-      }
+    const friendIds = new Set<string>([meId]);
+    for (const row of friendRows ?? []) {
+      friendIds.add(row.owner === meId ? row.friend : row.owner);
     }
 
     // 6-month window
@@ -128,21 +111,19 @@ serve(async (req: Request) => {
       .filter((e: any) => e.id)
       .sort((a: any, b: any) => b.val - a.val);
 
-    if (scope === "friends" && friendIds) {
-      entries = entries.filter((e) => friendIds!.has(e.id));
+    entries = entries.filter((e) => friendIds.has(e.id));
 
-      const existing = new Set(entries.map((e) => e.id));
-      const missing = [...friendIds].filter((id) => !existing.has(id));
+    const existing = new Set(entries.map((e) => e.id));
+    const missing = [...friendIds].filter((id) => !existing.has(id));
 
-      for (const id of missing) {
-        entries.push({ id, val: 0 });
-      }
-
-      entries.sort((a, b) => b.val - a.val);
+    for (const id of missing) {
+      entries.push({ id, val: 0 });
     }
 
+    entries.sort((a, b) => b.val - a.val);
+
     const allIds = new Set(entries.map((e) => e.id));
-    if (meId) allIds.add(meId);
+    allIds.add(meId);
 
     const nameMap = new Map<string, string>();
     if (allIds.size > 0) {
@@ -164,18 +145,8 @@ serve(async (req: Request) => {
       }
     }
 
-    let meRank = meId ? entries.findIndex((e) => e.id === meId) + 1 : 0;
-    let top5 = entries.slice(0, 5);
-
-    // If we have a user context but they aren't in the top list, insert a zero row
-    if (meId && meRank === 0 && !top5.some((e) => e.id === meId)) {
-      entries.push({ id: meId, val: 0 });
-      entries.sort((a, b) => b.val - a.val);
-      meRank = entries.findIndex((e) => e.id === meId) + 1;
-      top5 = entries.slice(0, 5);
-    }
-
-    const list = scope === "friends" ? entries : entries.slice(0, 5);
+    const meRank = entries.findIndex((e) => e.id === meId) + 1;
+    const list = entries;
 
     const resolveName = (id: string) => {
       if (nameMap.has(id)) return nameMap.get(id)!;
