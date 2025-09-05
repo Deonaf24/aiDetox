@@ -637,7 +637,10 @@ $$(".tab").forEach(tabBtn => {
 
     tabBtn.classList.add("is-active");
     const target = "tab-" + tabBtn.dataset.tab;
-    document.getElementById(target).classList.remove("hidden");
+    const targetEl = document.getElementById(target);
+    targetEl.classList.remove("hidden");
+    targetEl.classList.add("fade-in");
+    setTimeout(() => targetEl.classList.remove("fade-in"), 400);
 
     if (target === "tab-activity") loadAndRender();
     else if (target === "tab-settings") {
@@ -654,6 +657,12 @@ $$(".tab").forEach(tabBtn => {
 // -------------------------
 loadAndRender();
 loadSettings();
+
+const firstTab = document.getElementById("tab-activity");
+if (firstTab) {
+  firstTab.classList.add("fade-in");
+  setTimeout(() => firstTab.classList.remove("fade-in"), 400);
+}
 
 (async () => {
   await restoreSession();
