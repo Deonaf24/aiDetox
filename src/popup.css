@@ -6,11 +6,12 @@
   *{ box-sizing:border-box }
   html,body{ width:440px; margin:0; padding:0; }
   body{ background:linear-gradient(#fefefe, #d9d9d9); color:var(--text);
-    font:13px/1.45 "Helvetica Neue", Arial, sans-serif; }
+    font:13px/1.45 "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing:antialiased; }
   
   /* Header */
   .hdr{ display:flex; justify-content:space-between; align-items:center; padding:12px;
-    background:linear-gradient(#388e3c, #2e7d32); color:#fff; border-bottom:1px solid #1b5e20; }
+    background:linear-gradient(#388e3c, #2e7d32); color:#fff; border-bottom:1px solid #1b5e20;
+    box-shadow:0 2px 4px rgba(0,0,0,.25); }
   .hdr-title{ display:flex; gap:10px; align-items:center }
   .hdr-title h1{ margin:0; font-size:16px }
   .hdr-title .muted{ margin:2px 0 0; font-size:12px; color:#e0e0e0 }
@@ -22,7 +23,9 @@
   /* Tabs */
   .tabs{ display:flex; gap:8px; padding:10px 12px; background:var(--card); border-bottom:1px solid var(--border); }
   .tab{ padding:7px 12px; border-radius:0; border:1px solid var(--border);
-    background:linear-gradient(#f9f9f9, #e0e0e0); cursor:pointer; font-weight:600; color:var(--text); }
+    background:linear-gradient(#f9f9f9, #e0e0e0); cursor:pointer; font-weight:600; color:var(--text);
+    transition:background .2s,color .2s; }
+  .tab:hover{ background:linear-gradient(#eaeaea,#d2d2d2); }
   .tab.is-active{ background:linear-gradient(#388e3c, #2e7d32); color:#fff; border-color:#2e7d32; }
   
     /* Activity summary */
@@ -37,8 +40,10 @@
 
     /* Buttons */
     .btn{ padding:7px 10px; border-radius:4px; border:1px solid var(--border);
-      background:linear-gradient(#fefefe,#dedede); cursor:pointer; font-weight:600; }
-    .btn:hover{ filter:brightness(.97) }
+      background:linear-gradient(#fefefe,#dedede); cursor:pointer; font-weight:600;
+      transition:filter .2s,transform .2s; }
+    .btn:hover{ filter:brightness(1.05); }
+    .btn:active{ transform:scale(.97); }
     .btn-secondary{ background:linear-gradient(#f9f9f9,#e2e2e2); }
     .btn-danger{ background:linear-gradient(#fceaea,#f9bebe); border-color:#e99; color:var(--danger) }
     .actions{ display:flex; gap:8px }
@@ -49,7 +54,9 @@
   .board-body{ padding:8px 12px 12px; }
   .ranklist{ display:grid; gap:6px; }
   .rankrow{ display:grid; grid-template-columns: 28px 1fr 60px; align-items:center; gap:8px;
-    padding:8px 10px; border:1px solid var(--border); border-radius:4px; background:linear-gradient(#fefefe,#e6e6e6); }
+    padding:8px 10px; border:1px solid var(--border); border-radius:4px; background:linear-gradient(#fefefe,#e6e6e6);
+    transition:filter .2s; }
+  .rankrow:hover{ filter:brightness(1.02); }
   .rankrow.me{ background:linear-gradient(#eaf7ea,#d2e8d2); border-color:#99c199; } /* highlight your row */
   .ranknum{ font-weight:800; text-align:center; }
   .rankname{ display:flex; align-items:center; gap:8px; }
@@ -59,7 +66,8 @@
   
   /* Settings */
   .settings{ padding:12px; display:grid; gap:12px; }
-  .set-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 2px 6px rgba(0,0,0,.2); padding:12px; }
+  .set-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 2px 6px rgba(0,0,0,.2); padding:12px; transition:box-shadow .2s; }
+  .set-card:hover{ box-shadow:0 4px 12px rgba(0,0,0,.25); }
   .set-title{ font-weight:700; margin-bottom:8px; }
   .set-row{ display:flex; align-items:center; gap:10px; margin:10px 0; }
   .set-row-title{ font-weight:600; min-width:160px; }
@@ -76,65 +84,6 @@
   /* Footer + helpers */
   .foot{ padding:8px 12px 12px; font-size:11px; }
   .muted{ color:var(--muted) } .small{ font-size:12px } .hidden{ display:none }
-  
-  /* Tabs */
-.tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    background: var(--card);
-  }
-  .tab {
-    flex: 1;
-    padding: 10px;
-    text-align: center;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    color: var(--text);
-  }
-  .tab.is-active {
-    background: #2e7d32;
-    color: #fff;
-  }
-  
-    .board-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 2px 6px rgba(0,0,0,.2);
-      padding: 12px;
-    }
-    .board-head { margin-bottom: 8px; }
-    .board-title { font-weight: 700; font-size: 15px; }
-    .board-sub { font-size: 12px; color: var(--muted); }
-
-    /* Ranklist rows */
-    .ranklist .row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 8px;
-      border-radius: 4px;
-      font-size: 13px;
-      background: linear-gradient(#fefefe,#e6e6e6);
-      border: 1px solid var(--border);
-    }
-    .ranklist .row + .row { margin-top: 4px; }
-    .ranklist .row.me {
-      background: linear-gradient(#eaf7ea,#d2e8d2);
-      border: 1px solid #99c199;
-    }
-    .ranklist .rank { font-weight: 700; width: 28px; text-align: right; }
-    .ranklist .name {
-      flex: 1;
-      padding: 0 8px;
-      color: var(--text);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .ranklist .val { font-weight: 600; color: #111; }
 
 /* Friends */
 .friends{ padding:12px; display:grid; gap:12px; }
@@ -142,7 +91,8 @@
 .friend-title{ font-weight:700; margin-bottom:8px; }
 .friend-row{ display:flex; align-items:center; gap:8px; margin:8px 0; }
 .friend-list{ list-style:none; margin:0; padding:0; display:grid; gap:6px; }
-.friend-list li{ display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:linear-gradient(#fefefe,#e6e6e6); }
+.friend-list li{ display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:linear-gradient(#fefefe,#e6e6e6); transition:filter .2s; }
+.friend-list li:hover{ filter:brightness(1.02); }
 .friend-list li .actions{ display:flex; gap:6px; }
 .btn-sm{ padding:4px 6px; font-size:12px; }
   
