@@ -23,8 +23,7 @@ function escapeHtml(str = "") {
     .replaceAll("\"", "&quot;");
 }
 
-// Keep track of leaderboard scope toggle
-let LB_SCOPE = "global"; // "global" | "friends"
+// Leaderboard now only supports friends scope
 
 // Daily usage goal for ring progress
 const DEFAULT_DAILY_GOAL = 10;
@@ -113,16 +112,6 @@ document.getElementById("set-check-reason")?.addEventListener("change", saveSett
 document.getElementById("set-daily-goal")?.addEventListener("change", saveSettings);
 
 // -------------------------
-// Device ID (for anon/global leaderboards, etc.)
-// -------------------------
-async function getDeviceId() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("aidetox_device_id", (res) => {
-      resolve(res["aidetox_device_id"] || "");
-    });
-  });
-}
-
 // -------------------------
 // Auth UI state
 // -------------------------
@@ -454,28 +443,27 @@ function loadAndRender() {
 // -------------------------
 // Leaderboard
 // -------------------------
-async function getLeaderboard(metric, scope = LB_SCOPE) {
-  const device_id = await getDeviceId();
+async function getLeaderboard(metric) {
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Require auth for friends scope
-  if (scope === "friends" && !session?.access_token) {
+  if (!session?.access_token) {
     return { entries: [], me: null, error: "login_required" };
   }
 
   const url = new URL(FN_LEADERBOARDS);
-  url.searchParams.set("metric", metric);      // "novisit"
-  url.searchParams.set("scope", scope);        // "global" | "friends"
-  if (device_id) url.searchParams.set("device_id", device_id);
+  url.searchParams.set("metric", metric); // "novisit"
+  url.searchParams.set("scope", "friends");
 
   try {
-    const headers = { apikey: SUPABASE_ANON_KEY };
-    if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+    };
 
     const res = await fetch(url.toString(), { headers });
     let json = null;
     try { json = await res.json(); } catch (_) {}
-    if (res.status === 401 && scope === "friends") {
+    if (res.status === 401) {
       return { entries: [], me: null, error: json?.error || "login_required" };
     }
     if (!res.ok) throw new Error(json?.error || "request_failed");
@@ -521,7 +509,7 @@ function renderRanklist(containerId, lb) {
 }
 
 async function renderOffGridLeaderboard() {
-  const lb = await getLeaderboard("novisit", LB_SCOPE);
+  const lb = await getLeaderboard("novisit");
   renderRanklist("lb-novisit-list", lb);
 }
 
@@ -608,19 +596,7 @@ $("#friend-requests")?.addEventListener("click", async (e) => {
   await renderFriendsTab();
 });
 
-// Scope toggle (Global / Friends)
-$$(".seg-scope").forEach(btn => {
-  btn.addEventListener("click", async () => {
-    $$(".seg-scope").forEach(b => b.classList.remove("is-active"));
-    btn.classList.add("is-active");
-    LB_SCOPE = btn.dataset.scope || "global";
-    const note = $("#lb-note");
-    note.textContent = LB_SCOPE === "friends"
-      ? "Friends leaderboard requires login."
-      : "Showing global data.";
-    await renderOffGridLeaderboard();
-  });
-});
+// Leaderboard always shows friends; scope toggle removed
 
 // -------------------------
 // Tabs

@@ -34,10 +34,6 @@
     .today-label{ font-size:14px; color:var(--muted); }
     .activity-stats{ display:grid; gap:4px; font-size:14px; color:var(--muted); }
 
-    .seg{ display:inline-flex; border:1px solid var(--border); border-radius:4px; overflow:hidden; background:var(--card); }
-    .seg-btn{ padding:7px 10px; border:0; background:transparent; cursor:pointer; font-weight:600; color:var(--text); }
-    .seg-btn + .seg-btn{ border-left:1px solid var(--border) }
-    .seg-btn.is-active{ background:linear-gradient(#388e3c, #2e7d32); color:#fff }
 
     /* Buttons */
     .btn{ padding:7px 10px; border-radius:4px; border:1px solid var(--border);
@@ -47,10 +43,8 @@
     .btn-danger{ background:linear-gradient(#fceaea,#f9bebe); border-color:#e99; color:var(--danger) }
     .actions{ display:flex; gap:8px }
   
-  /* Leaderboards */
-  .lb-controls{ padding:12px; display:flex; justify-content:space-between; align-items:center; }
-  .boards{ padding:12px; display:grid; gap:12px; }
-    .board-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 2px 6px rgba(0,0,0,.2); }
+    /* Leaderboards */
+      .board-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 2px 6px rgba(0,0,0,.2); }
   .board-head{ padding:10px 12px 0; } .board-title{ font-weight:700; } .board-sub{ color:var(--muted); font-size:12px; margin-top:2px; }
   .board-body{ padding:8px 12px 12px; }
   .ranklist{ display:grid; gap:6px; }
@@ -102,37 +96,6 @@
   .tab.is-active {
     background: #2e7d32;
     color: #fff;
-  }
-  
-  /* Leaderboards */
-  .lb-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px;
-  }
-  .lb-controls .seg {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .lb-controls .seg-btn {
-    padding: 6px 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-  }
-  .lb-controls .seg-btn.is-active {
-    background: #2e7d32;
-    color: #fff;
-  }
-  
-  .boards {
-    display: grid;
-    gap: 16px;
-    padding: 12px;
   }
   
     .board-card {
