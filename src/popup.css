@@ -145,11 +145,5 @@
 .friend-list li{ display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border:1px solid var(--border); border-radius:4px; background:linear-gradient(#fefefe,#e6e6e6); }
 .friend-list li .actions{ display:flex; gap:6px; }
 .btn-sm{ padding:4px 6px; font-size:12px; }
-
-/* Friend toolbar */
-.friends-toolbar{ display:flex; justify-content:flex-end; gap:8px; }
-.icon-btn{ position:relative; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:4px; background:linear-gradient(#f9f9f9,#e2e2e2); cursor:pointer; font-size:16px; }
-.icon-btn:hover{ filter:brightness(.97); }
-.badge{ position:absolute; top:2px; right:2px; background:var(--danger); color:#fff; border-radius:999px; padding:0 4px; font-size:10px; }
   
   
