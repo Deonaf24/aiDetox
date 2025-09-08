@@ -534,7 +534,7 @@ function renderRanklist(containerId, lb) {
   const meInList = lb.me && lb.entries.some((e) => e.id === lb.me.id);
   const meRow = !meInList && lb.me
     ? `<div class="row me"><span class="rank">${lb.me.rank}</span>` +
-      `<span class="name">${lb.me.name || "Unnamed"}</span><span class="val">${lb.me.val}</span></div>`
+      `<span class="name">${escapeHtml(lb.me.name || "Unnamed")}</span><span class="val">${lb.me.val}</span></div>`
     : "";
 
   wrap.innerHTML = rows + meRow;
@@ -571,7 +571,7 @@ async function renderFriendsTab() {
       .in('id', friendIds);
     listEl.innerHTML = friendIds.map(id => {
       const name = profiles?.find(p => p.id === id)?.username || id;
-      return `<li>${name}</li>`;
+      return `<li>${escapeHtml(name)}</li>`;
     }).join('');
   } else {
     listEl.innerHTML = "<li class='empty'>No friends yet.</li>";
@@ -586,7 +586,7 @@ async function renderFriendsTab() {
       .in('id', ids);
     reqEl.innerHTML = reqRows.map(r => {
       const name = rProfiles?.find(p => p.id === r.requester)?.username || r.requester;
-      return `<li data-id="${r.requester}"><span>${name}</span><span class="actions"><button class="btn btn-secondary btn-sm accept">Accept</button><button class="btn btn-danger btn-sm decline">Decline</button></span></li>`;
+      return `<li data-id="${r.requester}"><span>${escapeHtml(name)}</span><span class="actions"><button class="btn btn-secondary btn-sm accept">Accept</button><button class="btn btn-danger btn-sm decline">Decline</button></span></li>`;
     }).join('');
   } else {
     reqEl.innerHTML = "<li class='empty'>No friend requests.</li>";
