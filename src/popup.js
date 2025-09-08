@@ -14,6 +14,9 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 const show = (el) => el && el.classList.remove("hidden");
 const hide = (el) => el && el.classList.add("hidden");
 
+const logoImg = $("#logo");
+if (logoImg) logoImg.src = chrome.runtime.getURL("icons/icon.svg");
+
 // Basic HTML escaping to prevent injection when building strings
 function escapeHtml(str = "") {
   return str
