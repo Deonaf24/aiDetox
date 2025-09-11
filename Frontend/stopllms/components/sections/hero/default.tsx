@@ -10,6 +10,7 @@ import Glow from "../../ui/glow";
 import { Mockup, MockupFrame } from "../../ui/mockup";
 import Screenshot from "../../ui/screenshot";
 import { Section } from "../../ui/section";
+import WordFlip from "../../ui/word-flip";
 
 interface HeroButtonProps {
   href: string;
@@ -21,7 +22,7 @@ interface HeroButtonProps {
 
 interface HeroProps {
   title?: string;
-  description?: string;
+  description?: ReactNode;
   mockup?: ReactNode | false;
   badge?: ReactNode | false;
   buttons?: HeroButtonProps[] | false;
@@ -30,7 +31,26 @@ interface HeroProps {
 
 export default function Hero({
   title = "Take back control of your life.",
-  description = "Studies out of MIT have shown that overreliance on AI causes your brain to shrink. The solution: writing your own emails.",
+  description = (
+    <>
+      Studies out of MIT have shown that overreliance on AI causes your brain to shrink.
+      {" "}The solution: writing your own{" "}
+      <WordFlip
+        words={[  "emails",
+          "texts",
+          "reports",
+          "papers",
+          "essays",
+          "articles",
+          "stories",
+          "presentations",
+          "plans",
+          "notes"]}
+        // optional: tighten layout to avoid width jumping
+        className="inline-block w-[7ch] text-left"
+      />
+    </>
+  ),
   mockup = (
     <Screenshot
       srcLight="/dashboard-light.png"
