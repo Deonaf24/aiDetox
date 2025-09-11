@@ -43,15 +43,15 @@ export default function Navbar({
   name = "Stop LLMs",
   homeUrl = "/",
   mobileLinks = [
-    { text: "Getting Started", href: "https://www.launchuicomponents.com/" },
-    { text: "Components", href: "https://www.launchuicomponents.com/" },
-    { text: "Documentation", href: "https://www.launchuicomponents.com/" },
+    { text: "Getting Started", href: "https://www.stopllms.com/" },
+    { text: "Components", href: "https://www.stopllms.com/" },
+    { text: "Documentation", href: "https://www.stopllms.com/" },
   ],
   actions = [
-    { text: "Sign in", href: "https://www.launchuicomponents.com/", isButton: false },
+    { text: "Sign in", href: "https://www.stopllms.com/", isButton: false },
     {
       text: "Get Started",
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       isButton: true,
       variant: "default",
     },

@@ -57,7 +57,7 @@ export default function Navigation({
     {
       title: "Documentation",
       isLink: true,
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
     },
   ],
   components = [
@@ -98,24 +98,24 @@ export default function Navigation({
     },
   ],
   logo = <LaunchUI />,
-  logoTitle = "Launch UI",
+  logoTitle = "Stop LLMs",
   logoDescription = "Landing page template built with React, Shadcn/ui and Tailwind that you can copy/paste into your project.",
-  logoHref = "https://www.launchuicomponents.com/",
+  logoHref = "https://www.stopllms.com/",
   introItems = [
     {
       title: "Introduction",
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       description:
         "Re-usable components built using Radix UI and Tailwind CSS.",
     },
     {
       title: "Installation",
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       description: "How to install dependencies and structure your app.",
     },
     {
       title: "Typography",
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       description: "Styles for headings, paragraphs, lists...etc",
     },
   ],

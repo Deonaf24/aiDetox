@@ -24,7 +24,7 @@ export default function CTA({
   title = "Install Now",
   buttons = [
     {
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       text: "Get StopLLMs",
       variant: "default",
     },

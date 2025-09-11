@@ -38,31 +38,30 @@ export default function FooterSection({
     {
       title: "Product",
       links: [
-        { text: "Changelog", href: "https://www.launchuicomponents.com/" },
-        { text: "Documentation", href: "https://www.launchuicomponents.com/" },
+        { text: "Changelog", href: "https://www.stopllms.com/" },
+        { text: "Documentation", href: "https://www.stopllms.com/" },
       ],
     },
     {
       title: "Company",
       links: [
-        { text: "About", href: "https://www.launchuicomponents.com/" },
-        { text: "Careers", href: "https://www.launchuicomponents.com/" },
-        { text: "Privacy Policy", href: "Privacy" },
+        { text: "About", href: "https://www.stopllms.com/" },
+        { text: "Careers", href: "https://www.stopllms.com/" },
       ],
     },
     {
       title: "Contact",
       links: [
-        { text: "Discord", href: "https://www.launchuicomponents.com/" },
-        { text: "Twitter", href: "https://www.launchuicomponents.com/" },
-        { text: "Github", href: "https://www.launchuicomponents.com/" },
+        { text: "Discord", href: "https://www.stopllms.com/" },
+        { text: "Twitter", href: "https://www.stopllms.com/" },
+        { text: "Github", href: "https://www.stopllms.com/" },
       ],
     },
   ],
-  copyright = "© 2025 Mikołaj Dobrucki. All rights reserved",
+  copyright = "© 2025 Deon Aftahi. All rights reserved",
   policies = [
-    { text: "Privacy Policy", href: "https://www.launchuicomponents.com/" },
-    { text: "Terms of Service", href: "https://www.launchuicomponents.com/" },
+    { text: "Privacy Policy", href: "Privacy" },
+    { text: "Terms of Service", href: "https://www.stopllms.com/" },
   ],
   showModeToggle = true,
   className,

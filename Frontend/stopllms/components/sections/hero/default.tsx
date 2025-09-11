@@ -35,7 +35,7 @@ export default function Hero({
     <Screenshot
       srcLight="/dashboard-light.png"
       srcDark="/dashboard-dark.png"
-      alt="Launch UI app screenshot"
+      alt="Stop LLMs app screenshot"
       width={1248}
       height={765}
       className="w-full"
@@ -44,9 +44,9 @@ export default function Hero({
   badge = (
     <Badge variant="outline" className="animate-appear">
       <span className="text-muted-foreground">
-        New version of Launch UI is out!
+        Stop LLMs is coming soon!
       </span>
-      <a href="https://www.launchuicomponents.com/" className="flex items-center gap-1">
+      <a href="https://www.stopllms.com/" className="flex items-center gap-1">
         Get started
         <ArrowRightIcon className="size-3" />
       </a>
@@ -54,12 +54,12 @@ export default function Hero({
   ),
   buttons = [
     {
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       text: "Get Started",
       variant: "default",
     },
     {
-      href: "https://www.launchuicomponents.com/",
+      href: "https://www.stopllms.com/",
       text: "Github",
       variant: "glow",
       icon: <Github className="mr-2 size-4" />,
