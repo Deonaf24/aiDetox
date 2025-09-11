@@ -7,6 +7,7 @@ const LOG_KEY = 'aidetox_log';
 const MAX_LOG = 1000;
 const DEVICE_KEY = 'aidetox_device_id';
 const PENDING_KEY = 'aidetox_pending_log';
+const PENDING_MAX = 100;
 const FN_INGEST = `${SUPABASE_URL}/functions/v1/ingest`;
 
 // --- Helpers ---
@@ -27,6 +28,7 @@ async function getDeviceId() {
 async function queueEvent(evt) {
   const { [PENDING_KEY]: q = [] } = await chrome.storage.local.get(PENDING_KEY);
   q.push(evt);
+  if (q.length > PENDING_MAX) q.splice(0, q.length - PENDING_MAX);
   await chrome.storage.local.set({ [PENDING_KEY]: q });
 }
 
