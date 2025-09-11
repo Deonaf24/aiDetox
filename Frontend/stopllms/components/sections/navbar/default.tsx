@@ -48,9 +48,8 @@ export default function Navbar({
     { text: "Documentation", href: "https://www.stopllms.com/" },
   ],
   actions = [
-    { text: "Sign in", href: "https://www.stopllms.com/", isButton: false },
     {
-      text: "Get Started",
+      text: "Coming Soon",
       href: "https://www.stopllms.com/",
       isButton: true,
       variant: "default",
