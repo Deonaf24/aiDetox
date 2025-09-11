@@ -472,6 +472,36 @@ function loadAndRender() {
   });
 }
 
+function downloadLogCsv(log = []) {
+  const header = ["timestamp", "event", "domain", "url", "reason", "unlock_delay_ms"];
+  const rows = log.map((e) => [
+    new Date(e.at).toISOString(),
+    e.event || "",
+    e.domain || "",
+    e.url || "",
+    e.reason || "",
+    e.unlock_delay_ms ?? "",
+  ]);
+
+  const csv = [header.join(","), ...rows.map((r) => r.map((v) => `"${String(v).replaceAll("\"", "\"\"")}"`).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "aidetox-log.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+document.getElementById("settings-export")?.addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "AIDETOX_GET_LOG" }, (res) => {
+    if (!res?.ok) return;
+    downloadLogCsv(res.log || []);
+  });
+});
+
 // -------------------------
 // Leaderboard
 // -------------------------
