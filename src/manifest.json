@@ -24,7 +24,7 @@
     "permissions": ["storage", "tabs", "downloads"],
 
     "host_permissions": [
-      "https://*.supabase.co/*"
+      "https://ltjtjgdjllmbyknaygof.supabase.co/*"
     ], 
   
     "background": {
