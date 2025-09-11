@@ -47,8 +47,8 @@ export default function Privacy() {
           <h2>1. Information We Collect</h2>
           <ul>
             <li><strong>Login information:</strong> Helps keep you signed in and connects your activity to your account.</li>
-            <li><strong>Usage activity:</strong> Records which sites you interact with, when, and what action you chose (continue or block). This can be kept only on your device or also synced to your account.</li>
-            <li><strong>Reasons you provide:</strong> Notes you write before choosing to continue. These can stay on your device or be synced so you can review them later.</li>
+            <li><strong>Usage activity:</strong> Records which sites you interact with, when, and what action you chose (continue or block).</li>
+            <li><strong>Reasons you provide:</strong> Notes you write before choosing to continue.</li>
             <li><strong>Device details:</strong> A simple identifier and browser version, used to tell devices apart and fix issues.</li>
           </ul>
           <p>
@@ -70,7 +70,6 @@ export default function Privacy() {
         <section id="retention" className="scroll-mt-24">
           <h2>3. Data Retention</h2>
           <ul>
-            <li><strong>On your device:</strong> Your data stays until you uninstall the Extension or clear it in settings.</li>
             <li><strong>In the cloud:</strong> If you sync data, it stays until you delete it or your account is inactive for a long period.</li>
           </ul>
         </section>
