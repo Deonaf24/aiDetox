@@ -47,7 +47,7 @@ export default function FooterSection({
       links: [
         { text: "About", href: "https://www.launchuicomponents.com/" },
         { text: "Careers", href: "https://www.launchuicomponents.com/" },
-        { text: "Blog", href: "https://www.launchuicomponents.com/" },
+        { text: "Privacy Policy", href: "Privacy" },
       ],
     },
     {

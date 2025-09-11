@@ -40,8 +40,8 @@ interface NavbarProps {
 
 export default function Navbar({
   logo = <LaunchUI />,
-  name = "Launch UI",
-  homeUrl = "https://www.launchuicomponents.com/",
+  name = "Stop LLMs",
+  homeUrl = "/",
   mobileLinks = [
     { text: "Getting Started", href: "https://www.launchuicomponents.com/" },
     { text: "Components", href: "https://www.launchuicomponents.com/" },

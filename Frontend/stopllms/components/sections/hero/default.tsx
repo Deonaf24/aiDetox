@@ -29,8 +29,8 @@ interface HeroProps {
 }
 
 export default function Hero({
-  title = "Give your big idea the design it deserves",
-  description = "Professionally designed blocks and templates built with React, Shadcn/ui and Tailwind that will help your product stand out.",
+  title = "Take back control of your life.",
+  description = "Studies out of MIT have shown that overreliance on AI causes your brain to shrink. The solution: writing your own emails.",
   mockup = (
     <Screenshot
       srcLight="/dashboard-light.png"
