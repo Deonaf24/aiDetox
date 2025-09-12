@@ -52,13 +52,15 @@ export default function Hero({
     </>
   ),
   mockup = (
-    <Screenshot
-      srcLight="/dashboard-light.png"
-      srcDark="/dashboard-dark.png"
-      alt="Stop LLMs app screenshot"
-      width={1248}
-      height={765}
-      className="w-full"
+    <video
+      src="/Preview.mov"
+      poster="/dashboard-dark.png"
+      className="w-full rounded-xl"
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="metadata"
     />
   ),
   badge = (
