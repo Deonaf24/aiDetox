@@ -1,34 +1,20 @@
+"use client";
+
 import { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-
-import { Button, type ButtonProps } from "../../ui/button";
+import { Button } from "../../ui/button";
 import Glow from "../../ui/glow";
 import { Section } from "../../ui/section";
-
-interface CTAButtonProps {
-  href: string;
-  text: string;
-  variant?: ButtonProps["variant"];
-  icon?: ReactNode;
-  iconRight?: ReactNode;
-}
+import { Input } from "../../ui/input";
 
 interface CTAProps {
   title?: string;
-  buttons?: CTAButtonProps[] | false;
   className?: string;
 }
 
 export default function CTA({
-  title = "Install Now",
-  buttons = [
-    {
-      href: "https://www.stopllms.com/",
-      text: "Get StopLLMs",
-      variant: "default",
-    },
-  ],
+  title = "Sign up for our mailing list.",
   className,
 }: CTAProps) {
   return (
@@ -37,25 +23,29 @@ export default function CTA({
         <h2 className="max-w-[640px] text-3xl leading-tight font-semibold sm:text-5xl sm:leading-tight">
           {title}
         </h2>
-        {buttons !== false && buttons.length > 0 && (
-          <div className="flex justify-center gap-4">
-            {buttons.map((button, index) => (
-              <Button
-                key={index}
-                variant={button.variant || "default"}
-                size="lg"
-                asChild
-              >
-                <a href={button.href}>
-                  {button.icon}
-                  {button.text}
-                  {button.iconRight}
-                </a>
-              </Button>
-            ))}
-          </div>
-        )}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const email = formData.get("email");
+            console.log("Submitted email:", email);
+            // TODO: hook up to newsletter API
+          }}
+          className="flex w-full max-w-md flex-col gap-3 sm:flex-row sm:items-center"
+        >
+          <Input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+            className="flex-1"
+          />
+          <Button type="submit" size="lg">
+            Sign Up
+          </Button>
+        </form>
       </div>
+
       <div className="absolute top-0 left-0 h-full w-full translate-y-[1rem] opacity-80 transition-all duration-500 ease-in-out group-hover:translate-y-[-2rem] group-hover:opacity-100">
         <Glow variant="bottom" />
       </div>
