@@ -8,7 +8,6 @@ import { Badge } from "../../ui/badge";
 import { Button, type ButtonProps } from "../../ui/button";
 import Glow from "../../ui/glow";
 import { Mockup, MockupFrame } from "../../ui/mockup";
-import Screenshot from "../../ui/screenshot";
 import { Section } from "../../ui/section";
 import WordFlip from "../../ui/word-flip";
 
@@ -68,16 +67,16 @@ export default function Hero({
       <span className="text-muted-foreground">
         Stop LLMs is coming soon!
       </span>
-      <a href="https://www.stopllms.com/" className="flex items-center gap-1">
-        Get started
+      <a href="/about" className="flex items-center gap-1">
+        Learn more
         <ArrowRightIcon className="size-3" />
       </a>
     </Badge>
   ),
   buttons = [
     {
-      href: "https://www.stopllms.com/",
-      text: "Get Started",
+      href: "/about",
+      text: "Discover StopLLMs",
       variant: "default",
     },
     {

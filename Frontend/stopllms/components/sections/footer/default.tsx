@@ -45,7 +45,7 @@ export default function FooterSection({
     {
       title: "Company",
       links: [
-        { text: "About", href: "https://www.stopllms.com/" },
+        { text: "About", href: "/about" },
         { text: "Careers", href: "https://www.stopllms.com/" },
       ],
     },
@@ -60,7 +60,7 @@ export default function FooterSection({
   ],
   copyright = "© 2025 Deon Aftahi & Eli Polterovich. All rights reserved",
   policies = [
-    { text: "Privacy Policy", href: "Privacy" },
+    { text: "Privacy Policy", href: "/Privacy" },
     { text: "Terms of Service", href: "https://www.stopllms.com/" },
   ],
   showModeToggle = true,
