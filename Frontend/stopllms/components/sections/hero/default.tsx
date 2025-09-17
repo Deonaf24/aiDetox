@@ -12,6 +12,9 @@ import { Mockup, MockupFrame } from "../../ui/mockup";
 import { Section } from "../../ui/section";
 import WordFlip from "../../ui/word-flip";
 
+const CHROME_WEB_STORE_URL =
+  "https://chromewebstore.google.com/detail/stop-llms/ffeakphhflnpgnjlblnpohnnhodjnial";
+
 interface HeroButtonProps {
   href: string;
   text: string;
@@ -68,15 +71,28 @@ export default function Hero({
   badge = (
     <Badge variant="outline" className="animate-appear">
       <span className="text-muted-foreground">
-        Stop LLMs is coming soon!
+        Stop LLMs is now live on the Chrome Web Store!
       </span>
-      <a href="/about" className="flex items-center gap-1">
-        Learn more
+      <a
+        href={CHROME_WEB_STORE_URL}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-1"
+      >
+        Install now
         <ArrowRightIcon className="size-3" />
       </a>
     </Badge>
   ),
   buttons = [
+    {
+      href: CHROME_WEB_STORE_URL,
+      text: "Add to Chrome",
+      variant: "glow",
+      iconRight: <ArrowRightIcon className="ml-2 size-4" />,
+      target: "_blank",
+      rel: "noreferrer",
+    },
     {
       href: "/about",
       text: "Discover StopLLMs",
@@ -85,7 +101,7 @@ export default function Hero({
     {
       href: "https://github.com/Deonaf24/aiDetox",
       text: "View the GitHub repo",
-      variant: "glow",
+      variant: "outline",
       icon: <Github className="mr-2 size-4" />,
       target: "_blank",
       rel: "noreferrer",
