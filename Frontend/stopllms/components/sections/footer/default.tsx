@@ -38,23 +38,19 @@ export default function FooterSection({
     {
       title: "Product",
       links: [
-        { text: "Changelog", href: "https://www.stopllms.com/" },
-        { text: "Documentation", href: "https://www.stopllms.com/" },
+        { text: "Documentation", href: "https://github.com/Deonaf24/aiDetox" },
       ],
     },
     {
       title: "Company",
       links: [
         { text: "About", href: "/about" },
-        { text: "Careers", href: "https://www.stopllms.com/" },
       ],
     },
     {
       title: "Contact",
       links: [
-        { text: "Discord", href: "https://www.stopllms.com/" },
-        { text: "Twitter", href: "https://www.stopllms.com/" },
-        { text: "Github", href: "https://www.stopllms.com/" },
+        { text: "Github", href: "https://github.com/Deonaf24/aiDetox" },
       ],
     },
   ],

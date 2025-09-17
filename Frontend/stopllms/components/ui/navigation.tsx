@@ -47,22 +47,9 @@ interface NavigationProps {
 export default function Navigation({
   menuItems = [
     {
-      title: "Getting started",
-      content: "default",
-    },
-    {
-      title: "Components",
-      content: "components",
-    },
-    {
       title: "About",
       isLink: true,
       href: "/about",
-    },
-    {
-      title: "Documentation",
-      isLink: true,
-      href: "https://www.stopllms.com/",
     },
   ],
   components = [
