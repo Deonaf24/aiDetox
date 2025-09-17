@@ -39,6 +39,9 @@
 @utility fade-bottom {
   mask-image: linear-gradient(to top, transparent 0%, black 35%);
 }
+@utility fade-bottom-soft {
+  mask-image: linear-gradient(to top, transparent 0%, black 15%);
+}
 @utility fade-top-lg {
   mask-image: linear-gradient(to bottom, transparent 15%, black 100%);
 }
