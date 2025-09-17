@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "lucide-react";
+import Link from "next/link";
 import { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -8,7 +9,6 @@ import { Badge } from "../../ui/badge";
 import { Button, type ButtonProps } from "../../ui/button";
 import Glow from "../../ui/glow";
 import { Mockup, MockupFrame } from "../../ui/mockup";
-import Screenshot from "../../ui/screenshot";
 import { Section } from "../../ui/section";
 import WordFlip from "../../ui/word-flip";
 
@@ -18,6 +18,8 @@ interface HeroButtonProps {
   variant?: ButtonProps["variant"];
   icon?: ReactNode;
   iconRight?: ReactNode;
+  target?: string;
+  rel?: string;
 }
 
 interface HeroProps {
@@ -68,23 +70,25 @@ export default function Hero({
       <span className="text-muted-foreground">
         Stop LLMs is coming soon!
       </span>
-      <a href="https://www.stopllms.com/" className="flex items-center gap-1">
-        Get started
+      <a href="/about" className="flex items-center gap-1">
+        Learn more
         <ArrowRightIcon className="size-3" />
       </a>
     </Badge>
   ),
   buttons = [
     {
-      href: "https://www.stopllms.com/",
-      text: "Get Started",
+      href: "/about",
+      text: "Discover StopLLMs",
       variant: "default",
     },
     {
-      href: "https://www.stopllms.com/",
-      text: "Github",
+      href: "https://github.com/Deonaf24/aiDetox",
+      text: "View the GitHub repo",
       variant: "glow",
       icon: <Github className="mr-2 size-4" />,
+      target: "_blank",
+      rel: "noreferrer",
     },
   ],
   className,
@@ -107,20 +111,35 @@ export default function Hero({
           </p>
           {buttons !== false && buttons.length > 0 && (
             <div className="animate-appear relative z-10 flex justify-center gap-4 opacity-0 delay-300">
-              {buttons.map((button, index) => (
-                <Button
-                  key={index}
-                  variant={button.variant || "default"}
-                  size="lg"
-                  asChild
-                >
-                  <a href={button.href}>
-                    {button.icon}
-                    {button.text}
-                    {button.iconRight}
-                  </a>
-                </Button>
-              ))}
+              {buttons.map((button, index) => {
+                const isInternalLink = button.href.startsWith("/");
+                return (
+                  <Button
+                    key={index}
+                    variant={button.variant || "default"}
+                    size="lg"
+                    asChild
+                  >
+                    {isInternalLink ? (
+                      <Link href={button.href}>
+                        {button.icon}
+                        {button.text}
+                        {button.iconRight}
+                      </Link>
+                    ) : (
+                      <a
+                        href={button.href}
+                        target={button.target ?? "_blank"}
+                        rel={button.rel ?? "noreferrer"}
+                      >
+                        {button.icon}
+                        {button.text}
+                        {button.iconRight}
+                      </a>
+                    )}
+                  </Button>
+                );
+              })}
             </div>
           )}
           {mockup !== false && (
