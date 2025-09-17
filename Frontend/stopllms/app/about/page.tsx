@@ -43,18 +43,18 @@ const features = [
 
 const team = [
   {
-    name: "Deon Aftahi",
+    name: "Eli Polterovich",
     role: "Co-founder & CEO",
     bio: "Product strategist focused on designing gentle friction that restores attention and confidence without sacrificing productivity.",
   },
   {
-    name: "Eli Polterovich",
+    name: "Deon Aftahi",
     role: "Co-founder & CTO",
     bio: "Engineer behind the StopLLMs extension, bridging behavioral science with privacy-first systems that work across modern browsers.",
   },
   {
     name: "Advisors & Community",
-    role: "Researchers, educators, and early adopters",
+    role: "Psychologists, Industry Professionals, and early adopters",
     bio: "A growing circle of experts and supporters pressure-test our ideas, share lived experiences, and help define responsible AI practices.",
   },
 ] satisfies {
@@ -65,16 +65,10 @@ const team = [
 
 const roadmap = [
   {
-    title: "Private beta with mindful guardrails",
-    timeframe: "Q1 2025",
+    title: "Public release",
+    timeframe: "September 2025",
     description:
-      "Invite early supporters to shape the browser extension, refine prompts, and validate gentle interventions across workflows.",
-  },
-  {
-    title: "Team and family dashboards",
-    timeframe: "Q2 2025",
-    description:
-      "Launch shared accountability spaces so groups can set norms together, review wins, and spot when AI habits drift off course.",
+      "We're happy to announce that Stop LLMs is officially available to download on the Chrome Web Store as of September 17th 2025.",
   },
   {
     title: "Cross-platform coverage",
@@ -83,10 +77,16 @@ const roadmap = [
       "Expand beyond Chromium with Firefox support, mobile companions, and integrations wherever AI access decisions are made.",
   },
   {
-    title: "Well-being insights and rewards",
-    timeframe: "Q4 2025",
+    title: "Stop LLMs Platform for Educators",
+    timeframe: "2026",
     description:
-      "Introduce richer trends, journaling reflections, and celebratory milestones that make intentional focus feel sustainable and fun.",
+      "We're expanding our platform from the browser into the classroom, with plans to create toold which allow for teachers and parents to ensure that the next generation isn't overraliant on AI. ",
+  },
+  {
+    title: "World's First AI Detox clinic",
+    timeframe: "Beyond",
+    description:
+      "We want to become the one stop shop for all problems related to AI. Whether that be emotional dependance, addiction, or simply overreliance.",
   },
 ] satisfies {
   title: string;
