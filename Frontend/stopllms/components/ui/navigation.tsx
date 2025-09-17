@@ -55,6 +55,11 @@ export default function Navigation({
       content: "components",
     },
     {
+      title: "About",
+      isLink: true,
+      href: "/about",
+    },
+    {
       title: "Documentation",
       isLink: true,
       href: "https://www.stopllms.com/",
@@ -62,61 +67,62 @@ export default function Navigation({
   ],
   components = [
     {
-      title: "Alert Dialog",
-      href: "/docs/primitives/alert-dialog",
+      title: "Mindful checkpoints",
+      href: "/about#features",
       description:
-        "A modal dialog that interrupts the user with important content and expects a response.",
+        "See how reflection prompts help you pause and choose whether AI support is really necessary.",
     },
     {
-      title: "Hover Card",
-      href: "/docs/primitives/hover-card",
+      title: "Adaptive usage limits",
+      href: "/about#features",
       description:
-        "For sighted users to preview content available behind a link.",
+        "Discover flexible caps and cooldowns that keep AI from becoming an autopilot.",
     },
     {
-      title: "Progress",
-      href: "/docs/primitives/progress",
+      title: "Progress insights",
+      href: "/about#features",
       description:
-        "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.",
+        "Celebrate mindful streaks with privacy-respecting analytics that highlight your growth.",
     },
     {
-      title: "Scroll-area",
-      href: "/docs/primitives/scroll-area",
-      description: "Visually or semantically separates content.",
+      title: "Community accountability",
+      href: "/about#team",
+      description:
+        "Learn how shared challenges and updates keep friends, families, and teams aligned.",
     },
     {
-      title: "Tabs",
-      href: "/docs/primitives/tabs",
+      title: "Privacy-first approach",
+      href: "/about#mission",
       description:
-        "A set of layered sections of content—known as tab panels—that are displayed one at a time.",
+        "Understand the principles that ensure we only capture what is needed to build trust.",
     },
     {
-      title: "Tooltip",
-      href: "/docs/primitives/tooltip",
+      title: "Roadmap",
+      href: "/about#roadmap",
       description:
-        "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
+        "Follow the milestones we are delivering with feedback from the StopLLMs community.",
     },
   ],
   logo = <LaunchUI />,
   logoTitle = "Stop LLMs",
-  logoDescription = "Landing page template built with React, Shadcn/ui and Tailwind that you can copy/paste into your project.",
-  logoHref = "https://www.stopllms.com/",
+  logoDescription = "Mindful guardrails that help you stay sharp without leaning on language models for every decision.",
+  logoHref = "/",
   introItems = [
     {
-      title: "Introduction",
-      href: "https://www.stopllms.com/",
+      title: "Mission & values",
+      href: "/about#mission",
       description:
-        "Re-usable components built using Radix UI and Tailwind CSS.",
+        "See how StopLLMs keeps humans in control of AI-assisted work.",
     },
     {
-      title: "Installation",
-      href: "https://www.stopllms.com/",
-      description: "How to install dependencies and structure your app.",
+      title: "Features overview",
+      href: "/about#features",
+      description: "Explore the mindful checkpoints, limits, and insights we provide.",
     },
     {
-      title: "Typography",
-      href: "https://www.stopllms.com/",
-      description: "Styles for headings, paragraphs, lists...etc",
+      title: "Roadmap",
+      href: "/about#roadmap",
+      description: "Track the milestones we&apos;re building with our community.",
     },
   ],
 }: NavigationProps) {

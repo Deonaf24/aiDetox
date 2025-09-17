@@ -1,7 +1,5 @@
 "use client";
 
-import { ReactNode } from "react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
 import Glow from "../../ui/glow";

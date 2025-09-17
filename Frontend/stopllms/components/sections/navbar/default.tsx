@@ -43,14 +43,14 @@ export default function Navbar({
   name = "Stop LLMs",
   homeUrl = "/",
   mobileLinks = [
-    { text: "Getting Started", href: "https://www.stopllms.com/" },
-    { text: "Components", href: "https://www.stopllms.com/" },
-    { text: "Documentation", href: "https://www.stopllms.com/" },
+    { text: "Home", href: "/" },
+    { text: "About", href: "/about" },
+    { text: "Privacy Policy", href: "/Privacy" },
   ],
   actions = [
     {
-      text: "Coming Soon",
-      href: "https://www.stopllms.com/",
+      text: "Learn more",
+      href: "/about",
       isButton: true,
       variant: "default",
     },
