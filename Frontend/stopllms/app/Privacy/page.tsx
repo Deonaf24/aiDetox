@@ -1,5 +1,7 @@
 import { Card, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/sections/footer/default";
+import { Section } from "@/components/ui/section";
 
 function formatDate(d = new Date()) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
@@ -9,7 +11,8 @@ export default function Privacy() {
   const lastUpdatedISO = new Date().toISOString().slice(0, 10);
 
   return (
-    <Card className="mx-auto max-w-3xl">
+    <Section>
+       <Card className="mx-auto max-w-3xl">
       {/* Top anchor for "Back to top" link */}
       <div id="top" />
 
@@ -123,5 +126,7 @@ export default function Privacy() {
         <a href="#top">Back to top</a>
       </Button>
     </Card>
+    < Footer/>
+    </Section>
   );
 }

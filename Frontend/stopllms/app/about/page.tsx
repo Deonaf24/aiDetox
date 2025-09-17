@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Footer from "@/components/sections/footer/default";
 
 import {
   Card,
@@ -222,6 +223,7 @@ export default function AboutPage() {
           </div>
         </div>
       </Section>
+      <Footer />
     </main>
   );
 }
