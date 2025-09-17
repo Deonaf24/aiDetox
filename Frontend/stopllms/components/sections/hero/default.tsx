@@ -98,14 +98,6 @@ export default function Hero({
       text: "Discover StopLLMs",
       variant: "default",
     },
-    {
-      href: "https://github.com/Deonaf24/aiDetox",
-      text: "View the GitHub repo",
-      variant: "outline",
-      icon: <Github className="mr-2 size-4" />,
-      target: "_blank",
-      rel: "noreferrer",
-    },
   ],
   className,
 }: HeroProps) {
