@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import Github from "../../logos/github";
 import { Badge } from "../../ui/badge";
 import { Button, type ButtonProps } from "../../ui/button";
 import Glow from "../../ui/glow";
@@ -69,20 +68,34 @@ export default function Hero({
     />
   ),
   badge = (
-    <Badge variant="outline" className="animate-appear">
-      <span className="text-muted-foreground">
-        Stop LLMs is now live on the Chrome Web Store!
-      </span>
-      <a
-        href={CHROME_WEB_STORE_URL}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-1"
+    <div className="animate-appear flex flex-col items-center gap-2">
+      <Badge
+        variant="secondary"
+        className="flex w-full flex-col items-center justify-center gap-1 px-4 py-1.5 text-center text-xs uppercase tracking-wide sm:flex-row sm:text-sm"
       >
-        Install now
-        <ArrowRightIcon className="size-3" />
-      </a>
-    </Badge>
+        <span className="text-muted-foreground">New milestone</span>
+        <span className="font-semibold text-foreground">
+          StopLLMs accepted into the Dobson Lean Startup Program
+        </span>
+      </Badge>
+      <Badge
+        variant="outline"
+        className="flex w-full flex-col items-center justify-center gap-1 px-4 py-1.5 text-center text-xs sm:flex-row sm:text-sm"
+      >
+        <span className="text-muted-foreground">
+          Stop LLMs is now live on the Chrome Web Store!
+        </span>
+        <a
+          href={CHROME_WEB_STORE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1"
+        >
+          Install now
+          <ArrowRightIcon className="size-3" />
+        </a>
+      </Badge>
+    </div>
   ),
   buttons = [
     {
