@@ -81,7 +81,7 @@ const roadmap = [
     title: "Stop LLMs Platform for Educators",
     timeframe: "2026",
     description:
-      "We're expanding our platform from the browser into the classroom, with plans to create toold which allow for teachers and parents to ensure that the next generation isn't overraliant on AI. ",
+      "We're expanding our platform from the browser into the classroom, with plans to create tools which allow for teachers and parents to ensure that the next generation isn't overraliant on AI. ",
   },
   {
     title: "World's First AI Detox clinic",
@@ -108,7 +108,7 @@ export default function AboutPage() {
               We build gentle guardrails that keep humans in control of AI.
             </h1>
             <p className="text-muted-foreground max-w-3xl text-lg text-balance sm:text-xl">
-              StopLLMs helps knowledge workers, students, and teams stay sharp by introducing purposeful pauses before outsourcing tough thinking. We combine behavioral science, community accountability, and respectful technology to reinforce your own voice.
+              StopLLMs helps workers, students, and teams stay sharp by introducing purposeful pauses before outsourcing tough thinking. We combine behavioral science, community accountability, and respectful technology to reinforce your own voice.
             </p>
           </div>
           <div className="grid w-full gap-4 text-left sm:grid-cols-3">
@@ -127,7 +127,7 @@ export default function AboutPage() {
             <div className="bg-muted/40 rounded-lg p-5">
               <h2 className="text-lg font-semibold">Respect privacy</h2>
               <p className="text-muted-foreground text-sm">
-                Log only what is needed—never your content—so accountability never comes at the cost of trust.
+                Log only what is needed, never your content, so accountability never comes at the cost of trust.
               </p>
             </div>
           </div>
