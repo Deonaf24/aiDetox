@@ -45,6 +45,7 @@ export default function FooterSection({
       title: "Company",
       links: [
         { text: "About", href: "/about" },
+        { text: "LinkedIn", href: "https://www.linkedin.com/company/108944939/" },
       ],
     },
     {

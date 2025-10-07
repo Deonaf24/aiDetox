@@ -30,7 +30,7 @@ export default function FAQ({
       answer: (
         <>
           <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-            In today&apos;s AI-driven world, we find ourselve&apos; performing decreaingly many intellectual tasks.
+            In today&apos;s AI-driven world, we find ourselve&apos;s performing decreasingly many intellectual tasks.
             Recent studies have shown that this has led to a measurable shrinking in the brain which can cause heaps of problems.
           </p>
           <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
@@ -49,7 +49,7 @@ export default function FAQ({
             whether they really need it for what they&apos;re doing.
           </p>
           <p className="text-muted-foreground mb-4 max-w-[600px]">
-            Through the use of our in-house machine learning model, we can determine whether a user&apos; reason
+            Through the use of our in-house machine learning model, we can determine whether a user&apos;s reason
             for using AI is justified or not; granting you access only when you truly need it.
           </p>
         </>

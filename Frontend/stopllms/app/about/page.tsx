@@ -33,9 +33,9 @@ const features = [
       "Lightweight analytics highlight streaks, mindful wins, and trends so you can celebrate progress without feeling surveilled.",
   },
   {
-    title: "Community accountability",
+    title: "Accountability",
     description:
-      "Shared challenges and opt-in updates keep friends, teammates, and families aligned around intentional technology habits.",
+      "Streaks and leaderboard with your friends help keep you accountable and consistent.",
   },
 ] satisfies {
   title: string;
@@ -67,9 +67,9 @@ const team = [
 const roadmap = [
   {
     title: "Public release",
-    timeframe: "September 2025",
+    timeframe: "Summer 2025",
     description:
-      "We're happy to announce that Stop LLMs is officially available to download on the Chrome Web Store as of September 17th 2025.",
+      "We're happy to announce that Stop LLMs is officially available to download on the Chrome Web Store.",
   },
   {
     title: "Cross-platform coverage",
@@ -171,7 +171,7 @@ export default function AboutPage() {
               A team committed to healthier AI habits.
             </h2>
             <p className="text-muted-foreground max-w-2xl text-balance">
-              We blend entrepreneurship, engineering, and community building experience to ensure StopLLMs is practical, humane, and ready for the next generation of knowledge work.
+              We blend entrepreneurship, engineering, and community building experience to ensure StopLLMs is practical, humane, and ready for the next generation of work.
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
