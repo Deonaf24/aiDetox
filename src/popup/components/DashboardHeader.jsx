@@ -14,24 +14,24 @@ export function DashboardHeader({ totals }) {
   return (
     <header
       className={cn(
-        "relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-emerald-600 to-emerald-700 p-6 text-white shadow-mockup",
+        "relative w-full overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-emerald-600 to-emerald-700 p-6 text-white shadow-mockup",
       )}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full min-w-0 items-center gap-4 sm:w-auto">
+          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
             {logoUrl ? (
-              <img src={logoUrl} alt="Stop LLMs" className="h-10 w-10" />
+              <img src={logoUrl} alt="Stop LLMs" className="h-10 w-10 object-contain" />
             ) : (
               <span className="text-2xl font-semibold">SL</span>
             )}
           </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Stop LLMs</h1>
+          <div className="flex min-w-0 flex-col gap-1 text-left">
+            <h1 className="text-2xl font-semibold leading-tight tracking-tight">Stop LLMs</h1>
             <p className="text-sm text-white/80">Your mindful AI usage companion</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 text-right text-sm font-medium">
+        <div className="grid w-full grid-cols-3 gap-4 text-sm font-medium sm:w-auto sm:text-right">
           <Stat label="Total" value={totals.total} icon={Activity} />
           <Stat label="Proceed" value={totals.proceed} icon={CheckCircle2} />
           <Stat label="Closed" value={totals.close} icon={XCircle} />
