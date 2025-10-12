@@ -7,6 +7,14 @@ import {
 } from "../../supabaseClient";
 import { getStoredSession, storeSession, clearStoredSession } from "../../sessionStorage";
 
+async function safeStoreSession(session) {
+  try {
+    await storeSession(session);
+  } catch (err) {
+    console.error("Failed to persist Supabase session", err);
+  }
+}
+
 async function bootstrapSession() {
   const stored = await getStoredSession();
   if (stored?.access_token && stored?.refresh_token) {
@@ -73,18 +81,20 @@ export function useSupabaseAuth() {
         setSession(null);
         setProfile(null);
         setMessage("Logged out");
+        setStatus("ready");
         return;
       }
 
       if (newSession) {
         setSession(newSession);
-        await storeSession(newSession);
+        await safeStoreSession(newSession);
         if (newSession.user) {
           await ensureProfile(newSession.user);
           const p = await fetchProfile(newSession.user.id);
           if (!active) return;
           setProfile(p);
         }
+        setStatus("ready");
       }
     });
 
@@ -149,7 +159,7 @@ export function useSupabaseAuth() {
     }
 
     await ensureProfile(data.user);
-    await storeSession(data.session);
+    await safeStoreSession(data.session);
     setMessage("Logged in!");
     return { ok: true };
   }, []);
