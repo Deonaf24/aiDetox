@@ -61,8 +61,8 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: "Inter", ui-sans-serif, system-ui;
-    width: 420px;
-    min-height: 620px;
+    width: 400px;
+    min-height: 560px;
   }
 
   h1, h2, h3, h4, h5, h6 {

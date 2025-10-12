@@ -56,14 +56,14 @@ export default function App() {
 
   const contentClass = useMemo(
     () =>
-      "mt-6 grid gap-6 rounded-3xl bg-card/60 p-6 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80",
+      "mt-4 grid gap-4 rounded-2xl bg-card/70 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80",
     [],
   );
 
   return (
-    <div className="flex min-h-screen flex-col gap-6 bg-gradient-to-br from-background via-background to-accent/30 p-6">
+    <div className="flex flex-col gap-4 bg-gradient-to-br from-background via-background to-accent/30 p-4">
       <DashboardHeader totals={activity.totals} />
-      <Tabs defaultValue="activity" className="space-y-6">
+      <Tabs defaultValue="activity" className="space-y-4">
         <TabsList>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="friends">Friends</TabsTrigger>
@@ -84,7 +84,7 @@ export default function App() {
           <SettingsTab auth={auth} settingsState={settingsState} onExport={handleExport} onClear={handleClear} />
         </TabsContent>
       </Tabs>
-      <footer className="text-center text-xs text-muted-foreground">
+      <footer className="pt-1 text-center text-[0.65rem] text-muted-foreground">
         Stay present. Every mindful choice counts.
       </footer>
     </div>

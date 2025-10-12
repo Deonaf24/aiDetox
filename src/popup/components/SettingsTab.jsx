@@ -49,7 +49,7 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
   };
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <Card>
         <CardHeader>
           <CardTitle>Account</CardTitle>
@@ -57,9 +57,9 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
             {auth.status === "loading" ? "Checking session…" : `Status: ${isLoggedIn ? "Signed in" : "Signed out"}`}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">{displayName}</span>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{displayName}</span>
             {auth.message ? <span className="text-emerald-600">{auth.message}</span> : null}
             {auth.error ? <span className="text-destructive">{auth.error}</span> : null}
           </div>
@@ -92,7 +92,7 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
           )}
 
           {showSignup ? (
-            <form onSubmit={handleSignup} className="grid gap-3 rounded-2xl border border-border/70 bg-muted/40 p-4">
+            <form onSubmit={handleSignup} className="grid gap-2.5 rounded-xl border border-border/70 bg-muted/40 p-3">
               <FormField label="Email">
                 <Input
                   type="email"
@@ -124,7 +124,7 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
           ) : null}
 
           {showLogin ? (
-            <form onSubmit={handleLogin} className="grid gap-3 rounded-2xl border border-border/70 bg-muted/40 p-4">
+            <form onSubmit={handleLogin} className="grid gap-2.5 rounded-xl border border-border/70 bg-muted/40 p-3">
               <FormField label="Email">
                 <Input
                   type="email"
@@ -155,7 +155,7 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
           <CardTitle>Behavior</CardTitle>
           <CardDescription>Fine tune how the extension prompts you before using AI tools.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           <PreferenceRow
             title="Always prompt"
             description="Ask on every visit without the initial delay."
@@ -203,7 +203,7 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
           <CardTitle>Prompt frequency</CardTitle>
           <CardDescription>Allow a certain number of automatic proceeds per interval.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-[auto,auto,1fr] sm:items-end">
+        <CardContent className="grid gap-3 sm:grid-cols-[auto,auto,1fr] sm:items-end">
           <FormField label="Allow">
             <Input
               type="number"
@@ -237,7 +237,7 @@ export function SettingsTab({ auth, settingsState, onExport, onClear }) {
           <CardTitle>Data</CardTitle>
           <CardDescription>Manage your local browsing log.</CardDescription>
         </CardHeader>
-        <CardFooter className="flex flex-wrap gap-3">
+        <CardFooter className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={onExport} disabled={settingsStatus === "loading"}>
             Export CSV
           </Button>
@@ -261,7 +261,7 @@ function FormField({ label, children }) {
 
 function PreferenceRow({ title, description, control }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2.5 rounded-xl border border-border/70 bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-medium text-foreground">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
@@ -273,7 +273,7 @@ function PreferenceRow({ title, description, control }) {
 
 function NumberRow({ label, description, value, onChange, min = 0 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2.5 rounded-xl border border-border/70 bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-medium text-foreground">{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>

@@ -18,7 +18,7 @@ export function FriendsTab({ session }) {
   };
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <Card>
         <CardHeader>
           <CardTitle>Days without AI</CardTitle>
@@ -59,7 +59,7 @@ export function FriendsTab({ session }) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Friend requests</CardTitle>
