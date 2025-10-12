@@ -2,6 +2,7 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   mode: process.env.NODE_ENV === "development" ? "development" : "production",
@@ -10,7 +11,7 @@ module.exports = {
   entry: {
     background: "./src/background.js",
     content: "./src/content.js",
-    popup: "./src/popup.js",
+    popup: "./src/popup/index.jsx",
   },
 
   output: {
@@ -22,17 +23,33 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.[jt]sx?$/,
         exclude: /node_modules/,
-        // Force ESM parsing
         type: "javascript/auto",
         parser: { javascript: { sourceType: "module" } },
         use: {
           loader: "esbuild-loader",
           options: {
-            target: "es2020", // MV3 (Chrome 114+) is fine
+            target: "es2020",
+            loader: "jsx",
+            jsx: "automatic",
           },
         },
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: "css-loader",
+            options: {
+              importLoaders: 1,
+            },
+          },
+          {
+            loader: "postcss-loader",
+          },
+        ],
       },
     ],
   },
@@ -49,15 +66,17 @@ module.exports = {
       patterns: [
         { from: "src/manifest.json", to: "manifest.json" },
         { from: "src/popup.html", to: "popup.html" },
-        { from: "src/popup.css", to: "popup.css" },
         { from: "src/content.css", to: "content.css" },
         { from: "src/icons", to: "icons", noErrorOnMissing: true },
       ],
     }),
+    new MiniCssExtractPlugin({
+      filename: "[name].css",
+    }),
   ],
 
   resolve: {
-    extensions: [".js"],
+    extensions: [".js", ".jsx"],
     fallback: {},
   },
 };
