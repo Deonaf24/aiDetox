@@ -64,11 +64,13 @@ export default function App() {
     <div className="flex flex-col gap-4 bg-gradient-to-br from-background via-background to-accent/30 p-4">
       <DashboardHeader totals={activity.totals} />
       <Tabs defaultValue="activity" className="space-y-4">
-        <TabsList className="mx-auto">
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="friends">Friends</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center">
+          <TabsList>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="friends">Friends</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="activity" className={contentClass}>
           <ActivityTab
             usage={activity.usage}
