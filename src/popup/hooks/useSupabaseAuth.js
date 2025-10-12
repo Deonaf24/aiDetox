@@ -15,26 +15,43 @@ async function safeStoreSession(session) {
   }
 }
 
-async function bootstrapSession() {
-  const stored = await getStoredSession();
-  if (stored?.access_token && stored?.refresh_token) {
-    try {
-      const { error } = await supabase.auth.setSession({
-        access_token: stored.access_token,
-        refresh_token: stored.refresh_token,
-      });
-      if (error) {
-        await clearStoredSession();
-      }
-    } catch (err) {
-      await clearStoredSession();
-    }
-  }
+async function loadInitialSession() {
   const { data, error } = await supabase.auth.getSession();
   if (error) {
     throw error;
   }
-  return data.session;
+
+  let currentSession = data.session;
+  if (currentSession?.access_token && currentSession?.refresh_token) {
+    await safeStoreSession(currentSession);
+    return currentSession;
+  }
+
+  const stored = await getStoredSession();
+  if (!stored?.access_token || !stored?.refresh_token) {
+    return null;
+  }
+
+  try {
+    const { data: setData, error: setError } = await supabase.auth.setSession({
+      access_token: stored.access_token,
+      refresh_token: stored.refresh_token,
+    });
+
+    if (setError) {
+      await clearStoredSession();
+      return null;
+    }
+
+    const refreshed = setData?.session || null;
+    if (refreshed?.access_token && refreshed?.refresh_token) {
+      await safeStoreSession(refreshed);
+    }
+    return refreshed;
+  } catch (err) {
+    await clearStoredSession();
+    return null;
+  }
 }
 
 async function fetchProfile(userId) {
@@ -59,7 +76,7 @@ export function useSupabaseAuth() {
     let active = true;
     (async () => {
       try {
-        const initial = await bootstrapSession();
+        const initial = await loadInitialSession();
         if (!active) return;
         setSession(initial);
         if (initial?.user) {
@@ -67,8 +84,10 @@ export function useSupabaseAuth() {
           if (!active) return;
           setProfile(p);
         }
-        setStatus("ready");
       } catch (err) {
+        if (!active) return;
+        setError(err.message || "Could not restore session");
+      } finally {
         if (!active) return;
         setStatus("ready");
       }
@@ -76,6 +95,19 @@ export function useSupabaseAuth() {
 
     const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!active) return;
+      if (event === "INITIAL_SESSION") {
+        if (newSession) {
+          setSession(newSession);
+          await safeStoreSession(newSession);
+          if (newSession.user) {
+            const p = await fetchProfile(newSession.user.id);
+            if (!active) return;
+            setProfile(p);
+          }
+        }
+        setStatus("ready");
+        return;
+      }
       if (event === "SIGNED_OUT") {
         await clearStoredSession();
         setSession(null);
