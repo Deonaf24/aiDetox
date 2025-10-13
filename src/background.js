@@ -1,7 +1,7 @@
 // background.js
 
 import { supabase, registerDevice, SUPABASE_URL } from "./supabaseClient.js";
-import { getStoredSession, clearStoredSession } from "./sessionStorage.js";
+import { getStoredSession } from "./sessionStorage.js";
 
 const LOG_KEY = 'aidetox_log';
 const MAX_LOG = 1000;
@@ -63,10 +63,12 @@ async function flushQueuedEvents(session) {
   }
 }
 
-// Clear any stored session when the extension is installed, started, or unloaded.
-chrome.runtime.onInstalled?.addListener(() => { clearStoredSession(); });
-chrome.runtime.onStartup?.addListener(() => { clearStoredSession(); });
-chrome.runtime.onSuspend?.addListener(() => { clearStoredSession(); });
+// We intentionally avoid clearing the stored session on lifecycle events such as
+// `onStartup` or `onSuspend`. The extension relies on the persisted Supabase
+// session so that users remain signed in after the popup is closed or the
+// service worker goes idle. Clearing storage here caused the popup to start in
+// a perpetual "Checking session…" state and forced users to re-authenticate on
+// every reopen. Sessions are still cleared explicitly when the user signs out.
 
 // --- Supabase logging ---
 async function logEventToSupabase(evt) {
