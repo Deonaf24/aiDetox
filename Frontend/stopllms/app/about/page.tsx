@@ -44,13 +44,8 @@ const features = [
 
 const team = [
   {
-    name: "Eli Polterovich",
-    role: "Co-founder & CEO",
-    bio: "Product strategist focused on designing gentle friction that restores attention and confidence without sacrificing productivity.",
-  },
-  {
     name: "Deon Aftahi",
-    role: "Co-founder & CTO",
+    role: "Founder",
     bio: "Engineer behind the StopLLMs extension, bridging behavioral science with privacy-first systems that work across modern browsers.",
   },
   {

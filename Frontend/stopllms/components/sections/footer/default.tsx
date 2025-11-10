@@ -55,7 +55,7 @@ export default function FooterSection({
       ],
     },
   ],
-  copyright = "© 2025 Deon Aftahi & Eli Polterovich. All rights reserved",
+  copyright = "© 2025 Deon Aftahi. All rights reserved",
   policies = [
     { text: "Privacy Policy", href: "/Privacy" },
     { text: "Terms of Service", href: "https://www.stopllms.com/" },
