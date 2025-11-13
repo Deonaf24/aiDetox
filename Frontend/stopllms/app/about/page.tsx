@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "About StopLLMs",
@@ -104,6 +105,15 @@ export default function AboutPage() {
             </h1>
             <p className="text-muted-foreground max-w-3xl text-lg text-balance sm:text-xl">
               StopLLMs helps workers, students, and teams stay sharp by introducing purposeful pauses before outsourcing tough thinking. We combine behavioral science, community accountability, and respectful technology to reinforce your own voice.
+            </p>
+            <Badge
+              variant="outline"
+              className="px-4 py-1.5 text-xs uppercase tracking-wide text-muted-foreground"
+            >
+              Program update
+            </Badge>
+            <p className="text-muted-foreground max-w-2xl text-center text-sm text-balance sm:text-base">
+              We have been accepted into the Dobson Lean Startup Program, gaining mentorship from McGill University&apos;s Dobson Centre for Entrepreneurship and a community that pushes us to measure the impact of mindful AI habits.
             </p>
           </div>
           <div className="grid w-full gap-4 text-left sm:grid-cols-3">
